@@ -1,7 +1,10 @@
 package wban.simulate.config;
 
-public class SlaveConfig {
+import java.io.Serializable;
 
+public class SlaveConfig implements Serializable {
+
+    private static final long serialVersionUID = 1796860855765837767L;
     public static final short ST_DOWN = 0;
     public static final short ST_CHARGING = 1;
     public static final short ST_DISCHARGING = 2;

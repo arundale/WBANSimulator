@@ -1,7 +1,10 @@
 package wban.simulate.config;
 
-public class BaseStationConfig {
+import java.io.Serializable;
 
+public class BaseStationConfig implements Serializable {
+
+    private static final long serialVersionUID = 4712279332004017414L;
     int bsPosX;
     int bsPosY;
     public int getBSPosX() {

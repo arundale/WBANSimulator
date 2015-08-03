@@ -1,5 +1,6 @@
 package wban.simulate;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -41,6 +42,8 @@ public class Simulator {
 
     public void saveConfig() {
         try {
+            File file = new File(configFileName);
+            file.delete();
             FileOutputStream fos = new FileOutputStream(configFileName);
             ObjectOutputStream ois = new ObjectOutputStream(fos);
             ois.writeObject(config);

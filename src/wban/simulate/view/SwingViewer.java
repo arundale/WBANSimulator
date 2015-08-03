@@ -21,6 +21,7 @@ import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
@@ -151,10 +152,13 @@ public class SwingViewer extends JPanel implements Runnable, ActionListener,
         switch (state) {
         case SlaveConfig.ST_DISCHARGING:
             img = sensorClusterNormalImg;
+            break;
         case SlaveConfig.ST_CHARGING:
             img = sensorClusterBatteryChargingImg;
+            break;
         case SlaveConfig.ST_DOWN:
             img = sensorClusterBatteryDownImg;
+            break;
         }
         JLabel icon = new JLabel(img);
         icon.setBounds(x, y, img.getIconWidth(), img.getIconHeight());
@@ -180,7 +184,8 @@ public class SwingViewer extends JPanel implements Runnable, ActionListener,
             int bsIdx = simulator.addBaseStation(bsConfig);
             icon.setToolTipText(String.valueOf(bsIdx));
         } else if (strCommand.equals(strMIAddSensorCluster)) {
-            JLabel icon = addSensorCluster(currentX, currentY, SlaveConfig.ST_DISCHARGING);
+            JLabel icon = addSensorCluster(currentX, currentY,
+                    SlaveConfig.ST_DISCHARGING);
             SlaveConfig slaveConfig = new SlaveConfig();
             slaveConfig.setState(SlaveConfig.ST_DISCHARGING);
             slaveConfig.setSlavePosX(currentX);
@@ -229,11 +234,14 @@ public class SwingViewer extends JPanel implements Runnable, ActionListener,
         }
         List<SlaveConfig> lstSlaveConfig = simulator.getAllSlaveConfig();
         for (SlaveConfig sc : lstSlaveConfig) {
-            addSensorCluster(sc.getSlavePosX(), sc.getSlavePosY(), sc.getState());
+            JLabel label = addSensorCluster(sc.getSlavePosX(),
+                    sc.getSlavePosY(), sc.getState());
+            label.setToolTipText(String.valueOf(lstSlaveConfig.indexOf(sc)));
         }
         List<BaseStationConfig> lstBSConfig = simulator.getAllBSConfig();
         for (BaseStationConfig bsc : lstBSConfig) {
-            addBaseStation(bsc.getBSPosX(), bsc.getBSPosY());
+            JLabel label = addBaseStation(bsc.getBSPosX(), bsc.getBSPosY());
+            label.setToolTipText(String.valueOf(lstBSConfig.indexOf(bsc)));
         }
     }
 
@@ -250,24 +258,38 @@ public class SwingViewer extends JPanel implements Runnable, ActionListener,
                     && y <= this.getHeight()) {
                 currentIcon.setBounds(x, y, currentIcon.getWidth(),
                         currentIcon.getHeight());
+                if (currentIcon.getIcon().equals(baseStationImg)) {
+                    int bsIdx = Integer.parseInt(currentIcon.getToolTipText());
+                    BaseStationConfig bsConfig = simulator.getAllBSConfig().get(
+                            bsIdx);
+                    bsConfig.setBSPosX(x);
+                    bsConfig.setBSPosY(y);
+                } else {
+                    int idx = Integer.parseInt(currentIcon.getToolTipText());
+                    SlaveConfig slaveConfig = simulator.getAllSlaveConfig()
+                            .get(idx);
+                    slaveConfig.setSlavePosX(x);
+                    slaveConfig.setSlavePosY(y);
+                }
             }
         }
     }
 
     public void mouseClicked(MouseEvent e) {
+    }
+
+    public void mousePressed(MouseEvent e) {
         if (e.getComponent() instanceof JLabel) {
             if (currentIcon != null) {
                 currentIcon.setBorder(null);
             }
             currentIcon = (JLabel) e.getComponent();
             currentIcon.setBorder(lineBorder);
-        }
-    }
-
-    public void mousePressed(MouseEvent e) {
-        if (e.isPopupTrigger() && e.getComponent().equals(currentIcon)) {
-            popMenu.setVisible(true);
-            popMenu.show(e.getComponent(), e.getX(), e.getY());
+            Icon img = currentIcon.getIcon();
+            if (e.isPopupTrigger() && img != null && !img.equals(baseStationImg)) {
+                popMenu.setVisible(true);
+                popMenu.show(e.getComponent(), e.getX(), e.getY());
+            }
         }
     }
 
