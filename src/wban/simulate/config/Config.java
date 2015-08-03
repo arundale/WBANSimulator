@@ -19,17 +19,13 @@ public class Config implements Serializable {
     final double batteryVoltMax = 4.2f;
     final double batteryVoltThreshold = 2.5f;
 
-    int baseStationPosX;
-    int baseStationPosY;
     double batteryChargeRateVoltPerSec;
     double batteryDischargeRateVoltPerSec;
-    List<SlaveConfig> slaveConfig;
-    List<BaseStationConfig> bsConfig;
+    List<SlaveConfig> slaveConfig = new LinkedList<SlaveConfig>();
+    List<BaseStationConfig> bsConfig = new LinkedList<BaseStationConfig>();
 
     private void writeObject(java.io.ObjectOutputStream out) throws IOException {
         JSONObject jso = new JSONObject();
-        jso.put("baseStationPosX", String.valueOf(baseStationPosX));
-        jso.put("baseStationPosY", String.valueOf(baseStationPosY));
         jso.put("batteryChargeRateVoltPerSec", String.valueOf(batteryChargeRateVoltPerSec));
         jso.put("batteryDischargeRateVoltPerSec", String.valueOf(batteryDischargeRateVoltPerSec));
         JSONArray jsaChildren = new JSONArray();
@@ -56,10 +52,6 @@ public class Config implements Serializable {
         try {
             JSONObject jso = (JSONObject) jsop.parse(new InputStreamReader(
                     (InputStream) in));
-            baseStationPosX = Integer.parseInt((String) jso
-                    .get("baseStationPosX"));
-            baseStationPosY = Integer.parseInt((String) jso
-                    .get("baseStationPosY"));
             batteryChargeRateVoltPerSec = Double.parseDouble((String) jso
                     .get("batteryChargeRateVoltPerSec"));
             batteryDischargeRateVoltPerSec = Double.parseDouble((String) jso
@@ -93,22 +85,6 @@ public class Config implements Serializable {
         }
     }
 
-    public int getBaseStationPosX() {
-        return baseStationPosX;
-    }
-
-    public void setBaseStationPosX(int baseStationPosX) {
-        this.baseStationPosX = baseStationPosX;
-    }
-
-    public int getBaseStationPosY() {
-        return baseStationPosY;
-    }
-
-    public void setBaseStationPosY(int baseStationPosY) {
-        this.baseStationPosY = baseStationPosY;
-    }
-
     public double getBatteryChargeRateVoltPerSec() {
         return batteryChargeRateVoltPerSec;
     }
@@ -124,6 +100,32 @@ public class Config implements Serializable {
     public void setBatteryDischargeRateVoltPerSec(
             double batteryDischargeRateVoltPerSec) {
         this.batteryDischargeRateVoltPerSec = batteryDischargeRateVoltPerSec;
+    }
+
+    public int addBaseStation(BaseStationConfig bsc) {
+        bsConfig.add(bsc);
+        return bsConfig.size()-1;
+    }
+
+    public int addSlaveConfig(SlaveConfig sc) {
+        slaveConfig.add(sc);
+        return slaveConfig.size()-1;
+    }
+
+    public BaseStationConfig getBSConfig(int idx) {
+        return bsConfig.get(idx);
+    }
+ 
+    public SlaveConfig getSlaveConfig(int idx) {
+        return slaveConfig.get(idx);
+    }
+
+    public List<SlaveConfig> getAllSlaveConfig() {
+        return slaveConfig;
+    }
+
+    public List<BaseStationConfig> getAllBSConfig() {
+        return bsConfig;
     }
 
 }

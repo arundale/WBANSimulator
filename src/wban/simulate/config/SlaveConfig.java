@@ -2,9 +2,14 @@ package wban.simulate.config;
 
 public class SlaveConfig {
 
+    public static final short ST_DOWN = 0;
+    public static final short ST_CHARGING = 1;
+    public static final short ST_DISCHARGING = 2;
+
     int slavePosX;
     int slavePosY;
     double batteryVolt;
+    short state;
 
     public int getSlavePosX() {
         return slavePosX;
@@ -23,6 +28,12 @@ public class SlaveConfig {
     }
     public void setBatteryVolt(double batteryVolt) {
         this.batteryVolt = batteryVolt;
+    }
+    public short getState() {
+        return state;
+    }
+    public void setState(short s) {
+        state = s;
     }
 
 }

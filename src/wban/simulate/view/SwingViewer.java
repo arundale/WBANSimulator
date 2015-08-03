@@ -1,6 +1,7 @@
 package wban.simulate.view;
 
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Toolkit;
@@ -10,17 +11,25 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.util.List;
 
 import javax.swing.BorderFactory;
+import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
 import javax.swing.border.Border;
+
+import wban.simulate.Simulator;
+import wban.simulate.config.BaseStationConfig;
+import wban.simulate.config.SlaveConfig;
 
 public class SwingViewer extends JPanel implements Runnable, ActionListener,
         MouseMotionListener, MouseListener {
@@ -40,11 +49,15 @@ public class SwingViewer extends JPanel implements Runnable, ActionListener,
     static final String strMIChargeBattery = "Charge battery";
     static final String strMIStopCharging = "Stop Charging";
     static final String strMIBatteryDown = "Battery down";
+    static final String strMILoadConfig = "Load from Configuration";
+    static final String strMISaveConfig = "Save Configuration";
     final JPopupMenu popMenu = new JPopupMenu();
     final Border lineBorder = BorderFactory.createLineBorder(Color.black);
 
     JLabel currentIcon = null;
     int currentX, currentY;
+
+    Simulator simulator = Simulator.getInstance();
 
     public SwingViewer() {
         JMenuItem miChangeDetails = new JMenuItem(strMIChangeDetails);
@@ -69,22 +82,35 @@ public class SwingViewer extends JPanel implements Runnable, ActionListener,
                 (int) screenSize.getHeight());
         this.setLayout(null);
         this.setSize((int) screenSize.getWidth(), (int) screenSize.getHeight());
-        final JPopupMenu mainMenu = new JPopupMenu();
+
+        JMenuBar menuBar = new JMenuBar();
+        JMenu menuMain = new JMenu("Main");
+        menuBar.add(menuMain);
+        f.setJMenuBar(menuBar);
+        JMenuItem miLoadConfig = new JMenuItem(strMILoadConfig);
+        miLoadConfig.addActionListener(this);
+        menuMain.add(miLoadConfig);
+        JMenuItem miSaveConfig = new JMenuItem(strMISaveConfig);
+        miSaveConfig.addActionListener(this);
+        menuMain.add(miSaveConfig);
+
+        final JPopupMenu popMenu = new JPopupMenu();
         JMenuItem miBase = new JMenuItem(strMIAddBaseStation);
         miBase.addActionListener(this);
         JMenuItem miSensorCluster = new JMenuItem(strMIAddSensorCluster);
         miSensorCluster.addActionListener(this);
-        mainMenu.add(miBase);
-        mainMenu.add(miSensorCluster);
-        this.add(mainMenu);
+        popMenu.add(miBase);
+        popMenu.add(miSensorCluster);
+        this.add(popMenu);
         this.addMouseListener(new MouseAdapter() {
             public void mousePressed(MouseEvent evt) {
                 if (evt.isPopupTrigger()) {
-                    mainMenu.show(evt.getComponent(), evt.getX(), evt.getY());
+                    popMenu.show(evt.getComponent(), evt.getX(), evt.getY());
                     currentX = evt.getX();
                     currentY = evt.getY();
                 }
             }
+
             public void mouseReleased(MouseEvent evt) {
             }
         });
@@ -106,44 +132,109 @@ public class SwingViewer extends JPanel implements Runnable, ActionListener,
         super.paintComponent(g);
     }
 
+    private JLabel addBaseStation(int x, int y) {
+        JLabel icon = new JLabel(baseStationImg);
+        icon.setBounds(x, y, baseStationImg.getIconWidth(),
+                baseStationImg.getIconHeight());
+        icon.addMouseListener(this);
+        icon.addMouseMotionListener(this);
+        this.add(icon);
+        if (currentIcon != null)
+            currentIcon.setBorder(null);
+        currentIcon = icon;
+        icon.setBorder(lineBorder);
+        return icon;
+    }
+
+    public JLabel addSensorCluster(int x, int y, short state) {
+        ImageIcon img = null;
+        switch (state) {
+        case SlaveConfig.ST_DISCHARGING:
+            img = sensorClusterNormalImg;
+        case SlaveConfig.ST_CHARGING:
+            img = sensorClusterBatteryChargingImg;
+        case SlaveConfig.ST_DOWN:
+            img = sensorClusterBatteryDownImg;
+        }
+        JLabel icon = new JLabel(img);
+        icon.setBounds(x, y, img.getIconWidth(), img.getIconHeight());
+        icon.addMouseListener(this);
+        icon.addMouseMotionListener(this);
+        this.add(icon);
+        if (currentIcon != null)
+            currentIcon.setBorder(null);
+        currentIcon = icon;
+        icon.setBorder(lineBorder);
+        popMenu.setVisible(false);
+        popMenu.revalidate();
+        return icon;
+    }
+
     public void actionPerformed(ActionEvent e) {
         String strCommand = e.getActionCommand();
         if (strCommand.equals(strMIAddBaseStation)) {
-            JLabel icon = new JLabel(baseStationImg);
-            icon.setBounds(currentX, currentY, baseStationImg.getIconWidth(),
-                    baseStationImg.getIconHeight());
-            icon.addMouseListener(this);
-            icon.addMouseMotionListener(this);
-            this.add(icon);
-            if (currentIcon != null)
-                currentIcon.setBorder(null);
-            currentIcon = icon;
-            icon.setBorder(lineBorder);
+            JLabel icon = addBaseStation(currentX, currentY);
+            BaseStationConfig bsConfig = new BaseStationConfig();
+            bsConfig.setBSPosX(currentX);
+            bsConfig.setBSPosY(currentY);
+            int bsIdx = simulator.addBaseStation(bsConfig);
+            icon.setToolTipText(String.valueOf(bsIdx));
         } else if (strCommand.equals(strMIAddSensorCluster)) {
-            JLabel icon = new JLabel(sensorClusterNormalImg);
-            icon.setBounds(currentX, currentY,
-                    sensorClusterNormalImg.getIconWidth(),
-                    sensorClusterNormalImg.getIconHeight());
-            icon.addMouseListener(this);
-            icon.addMouseMotionListener(this);
-            this.add(icon);
-            if (currentIcon != null)
-                currentIcon.setBorder(null);
-            currentIcon = icon;
-            icon.setBorder(lineBorder);
-            popMenu.setVisible(false);
-            popMenu.revalidate();
+            JLabel icon = addSensorCluster(currentX, currentY, SlaveConfig.ST_DISCHARGING);
+            SlaveConfig slaveConfig = new SlaveConfig();
+            slaveConfig.setState(SlaveConfig.ST_DISCHARGING);
+            slaveConfig.setSlavePosX(currentX);
+            slaveConfig.setSlavePosY(currentY);
+            int slaveIdx = simulator.addSlaveConfig(slaveConfig);
+            icon.setToolTipText(String.valueOf(slaveIdx));
         } else if (strCommand.equals(strMIChargeBattery)) {
             currentIcon.setIcon(sensorClusterBatteryChargingImg);
             this.revalidate();
+            int idx = Integer.valueOf(currentIcon.getToolTipText());
+            simulator.getConfig().getSlaveConfig(idx)
+                    .setState(SlaveConfig.ST_CHARGING);
         } else if (strCommand.equals(strMIStopCharging)) {
             currentIcon.setIcon(sensorClusterNormalImg);
             this.revalidate();
+            int idx = Integer.valueOf(currentIcon.getToolTipText());
+            simulator.getConfig().getSlaveConfig(idx)
+                    .setState(SlaveConfig.ST_DISCHARGING);
         } else if (strCommand.equals(strMIBatteryDown)) {
             currentIcon.setIcon(sensorClusterBatteryDownImg);
             this.revalidate();
+            int idx = Integer.valueOf(currentIcon.getToolTipText());
+            simulator.getConfig().getSlaveConfig(idx)
+                    .setState(SlaveConfig.ST_DOWN);
+        } else if (strCommand.equals(strMILoadConfig)) {
+            simulator.loadConfig();
+            redrawConfig();
+        } else if (strCommand.equals(strMISaveConfig)) {
+            simulator.saveConfig();
         }
         this.repaint();
+    }
+
+    private void redrawConfig() {
+        for (Component c : this.getComponents()) {
+            if (c instanceof JLabel) {
+                JLabel l = (JLabel) c;
+                Icon i = l.getIcon();
+                if (i.equals(baseStationImg)
+                        || i.equals(sensorClusterNormalImg)
+                        || i.equals(sensorClusterBatteryChargingImg)
+                        || i.equals(sensorClusterBatteryDownImg)) {
+                    this.remove(c);
+                }
+            }
+        }
+        List<SlaveConfig> lstSlaveConfig = simulator.getAllSlaveConfig();
+        for (SlaveConfig sc : lstSlaveConfig) {
+            addSensorCluster(sc.getSlavePosX(), sc.getSlavePosY(), sc.getState());
+        }
+        List<BaseStationConfig> lstBSConfig = simulator.getAllBSConfig();
+        for (BaseStationConfig bsc : lstBSConfig) {
+            addBaseStation(bsc.getBSPosX(), bsc.getBSPosY());
+        }
     }
 
     public void mouseMoved(MouseEvent e) {
