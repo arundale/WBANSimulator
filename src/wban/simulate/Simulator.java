@@ -1,3 +1,4 @@
+
 package wban.simulate;
 
 import java.io.File;
@@ -7,18 +8,19 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.util.List;
 
-import wban.simulate.config.BaseStationConfig;
 import wban.simulate.config.Config;
 import wban.simulate.config.SlaveConfig;
+import wban.simulate.path.PathFinder;
+import wban.simulate.path.PointSet;
 
 public class Simulator {
 
-    static Simulator instance = new Simulator();
-    private static final String configFileName = "config.json";
+    private static Simulator instance = new Simulator();
+    private static final String configFileName = "config.ser";
 
     Config config = new Config();
+    PathFinder pathFinder = new PathFinder();
 
     public static Simulator getInstance() {
         return instance;
@@ -56,24 +58,12 @@ public class Simulator {
         }
     }
 
-    public int addBaseStation(BaseStationConfig bsConfig) {
-        return config.addBaseStation(bsConfig);
-    }
-
-    public int addSlaveConfig(SlaveConfig slaveConfig) {
-        return config.addSlaveConfig(slaveConfig);
-    }
-
     public Config getConfig() {
         return config;
     }
 
-    public List<SlaveConfig> getAllSlaveConfig() {
-        return config.getAllSlaveConfig();
-    }
-
-    public List<BaseStationConfig> getAllBSConfig() {
-        return config.getAllBSConfig();
+    public PointSet buildPathFor(SlaveConfig sc) {
+        return pathFinder.buildPathFor(sc, config);
     }
 
 }

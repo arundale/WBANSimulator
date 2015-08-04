@@ -4,9 +4,11 @@ import java.io.Serializable;
 
 public class BaseStationConfig implements Serializable {
 
-    private static final long serialVersionUID = 4712279332004017414L;
     int bsPosX;
     int bsPosY;
+    int bsMidX;
+    int bsMidY;
+    private static final long serialVersionUID = 4712279332004017414L;
     public int getBSPosX() {
         return bsPosX;
     }
@@ -18,6 +20,18 @@ public class BaseStationConfig implements Serializable {
     }
     public void setBSPosY(int bsPosY) {
         this.bsPosY = bsPosY;
+    }
+    public int getBSMidX() {
+        return bsMidX;
+    }
+    public void setBSMidX(int bsMidX) {
+        this.bsMidX = bsMidX;
+    }
+    public int getBSMidY() {
+        return bsMidY;
+    }
+    public void setBSMidY(int bsMidY) {
+        this.bsMidY = bsMidY;
     }
 
 }

@@ -35,12 +35,12 @@ public class Config implements Serializable {
 
     public int addBaseStation(BaseStationConfig bsc) {
         bsConfig.add(bsc);
-        return bsConfig.size();
+        return bsConfig.size()-1;
     }
 
     public int addSlaveConfig(SlaveConfig sc) {
         slaveConfig.add(sc);
-        return slaveConfig.size();
+        return slaveConfig.size()-1;
     }
 
     public BaseStationConfig getBSConfig(int idx) {

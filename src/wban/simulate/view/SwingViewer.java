@@ -21,7 +21,6 @@ import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
@@ -31,6 +30,9 @@ import javax.swing.border.Border;
 import wban.simulate.Simulator;
 import wban.simulate.config.BaseStationConfig;
 import wban.simulate.config.SlaveConfig;
+import wban.simulate.path.BoundingSquare;
+import wban.simulate.path.PointSet;
+import wban.simulate.path.Pt;
 
 public class SwingViewer extends JPanel implements Runnable, ActionListener,
         MouseMotionListener, MouseListener {
@@ -50,6 +52,7 @@ public class SwingViewer extends JPanel implements Runnable, ActionListener,
     static final String strMIChargeBattery = "Charge battery";
     static final String strMIStopCharging = "Stop Charging";
     static final String strMIBatteryDown = "Battery down";
+    static final String strMISendData = "Send data";
     static final String strMILoadConfig = "Load from Configuration";
     static final String strMISaveConfig = "Save Configuration";
     final JPopupMenu popMenu = new JPopupMenu();
@@ -59,20 +62,24 @@ public class SwingViewer extends JPanel implements Runnable, ActionListener,
     int currentX, currentY;
 
     Simulator simulator = Simulator.getInstance();
+    private PointSet currentPointSet = null;
 
     public SwingViewer() {
         JMenuItem miChangeDetails = new JMenuItem(strMIChangeDetails);
         JMenuItem miChargeBattery = new JMenuItem(strMIChargeBattery);
         JMenuItem miStopCharging = new JMenuItem(strMIStopCharging);
         JMenuItem miBatteryDown = new JMenuItem(strMIBatteryDown);
+        JMenuItem miSendData = new JMenuItem(strMISendData);
         miChangeDetails.addActionListener(this);
         miChargeBattery.addActionListener(this);
         miStopCharging.addActionListener(this);
         miBatteryDown.addActionListener(this);
+        miSendData.addActionListener(this);
         popMenu.add(miChangeDetails);
         popMenu.add(miChargeBattery);
         popMenu.add(miStopCharging);
         popMenu.add(miBatteryDown);
+        popMenu.add(miSendData);
     }
 
     public void run() {
@@ -131,6 +138,14 @@ public class SwingViewer extends JPanel implements Runnable, ActionListener,
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
+        if (currentPointSet != null) {
+            BoundingSquare bs = currentPointSet.getBoundingSquare();
+            Pt[] vertices = bs.getBounds();
+            g.drawLine(vertices[0].getX(), vertices[0].getY(), vertices[1].getX(), vertices[1].getY());
+            g.drawLine(vertices[1].getX(), vertices[1].getY(), vertices[2].getX(), vertices[2].getY());
+            g.drawLine(vertices[2].getX(), vertices[2].getY(), vertices[3].getX(), vertices[3].getY());
+            g.drawLine(vertices[3].getX(), vertices[3].getY(), vertices[0].getX(), vertices[0].getY());
+        }
     }
 
     private JLabel addBaseStation(int x, int y) {
@@ -181,7 +196,9 @@ public class SwingViewer extends JPanel implements Runnable, ActionListener,
             BaseStationConfig bsConfig = new BaseStationConfig();
             bsConfig.setBSPosX(currentX);
             bsConfig.setBSPosY(currentY);
-            int bsIdx = simulator.addBaseStation(bsConfig);
+            bsConfig.setBSMidX(currentX + currentIcon.getWidth() / 2);
+            bsConfig.setBSMidY(currentY + currentIcon.getHeight() / 2);
+            int bsIdx = simulator.getConfig().addBaseStation(bsConfig);
             icon.setToolTipText(String.valueOf(bsIdx));
         } else if (strCommand.equals(strMIAddSensorCluster)) {
             JLabel icon = addSensorCluster(currentX, currentY,
@@ -190,7 +207,9 @@ public class SwingViewer extends JPanel implements Runnable, ActionListener,
             slaveConfig.setState(SlaveConfig.ST_DISCHARGING);
             slaveConfig.setSlavePosX(currentX);
             slaveConfig.setSlavePosY(currentY);
-            int slaveIdx = simulator.addSlaveConfig(slaveConfig);
+            slaveConfig.setSlaveMidX(currentX + currentIcon.getWidth() / 2);
+            slaveConfig.setSlaveMidY(currentY + currentIcon.getHeight() / 2);
+            int slaveIdx = simulator.getConfig().addSlaveConfig(slaveConfig);
             icon.setToolTipText(String.valueOf(slaveIdx));
         } else if (strCommand.equals(strMIChargeBattery)) {
             currentIcon.setIcon(sensorClusterBatteryChargingImg);
@@ -210,6 +229,10 @@ public class SwingViewer extends JPanel implements Runnable, ActionListener,
             int idx = Integer.valueOf(currentIcon.getToolTipText());
             simulator.getConfig().getSlaveConfig(idx)
                     .setState(SlaveConfig.ST_DOWN);
+        } else if (strCommand.equals(strMISendData)) {
+            int id = Integer.valueOf(currentIcon.getToolTipText());
+            SlaveConfig sc = simulator.getConfig().getSlaveConfig(id);
+            currentPointSet = simulator.buildPathFor(sc);
         } else if (strCommand.equals(strMILoadConfig)) {
             simulator.loadConfig();
             redrawConfig();
@@ -232,13 +255,15 @@ public class SwingViewer extends JPanel implements Runnable, ActionListener,
                 }
             }
         }
-        List<SlaveConfig> lstSlaveConfig = simulator.getAllSlaveConfig();
+        List<SlaveConfig> lstSlaveConfig = simulator.getConfig()
+                .getAllSlaveConfig();
         for (SlaveConfig sc : lstSlaveConfig) {
             JLabel label = addSensorCluster(sc.getSlavePosX(),
                     sc.getSlavePosY(), sc.getState());
             label.setToolTipText(String.valueOf(lstSlaveConfig.indexOf(sc)));
         }
-        List<BaseStationConfig> lstBSConfig = simulator.getAllBSConfig();
+        List<BaseStationConfig> lstBSConfig = simulator.getConfig()
+                .getAllBSConfig();
         for (BaseStationConfig bsc : lstBSConfig) {
             JLabel label = addBaseStation(bsc.getBSPosX(), bsc.getBSPosY());
             label.setToolTipText(String.valueOf(lstBSConfig.indexOf(bsc)));
@@ -260,16 +285,22 @@ public class SwingViewer extends JPanel implements Runnable, ActionListener,
                         currentIcon.getHeight());
                 if (currentIcon.getIcon().equals(baseStationImg)) {
                     int bsIdx = Integer.parseInt(currentIcon.getToolTipText());
-                    BaseStationConfig bsConfig = simulator.getAllBSConfig().get(
-                            bsIdx);
+                    BaseStationConfig bsConfig = simulator.getConfig()
+                            .getAllBSConfig().get(bsIdx);
                     bsConfig.setBSPosX(x);
                     bsConfig.setBSPosY(y);
+                    bsConfig.setBSMidX(x + currentIcon.getWidth() / 2);
+                    bsConfig.setBSMidY(y + currentIcon.getHeight() / 2);
                 } else {
                     int idx = Integer.parseInt(currentIcon.getToolTipText());
-                    SlaveConfig slaveConfig = simulator.getAllSlaveConfig()
-                            .get(idx);
+                    SlaveConfig slaveConfig = simulator.getConfig()
+                            .getAllSlaveConfig().get(idx);
                     slaveConfig.setSlavePosX(x);
                     slaveConfig.setSlavePosY(y);
+                    slaveConfig.setSlaveMidX(x + currentIcon.getWidth()
+                            / 2);
+                    slaveConfig.setSlaveMidY(y + currentIcon.getHeight()
+                            / 2);
                 }
             }
         }
@@ -286,7 +317,8 @@ public class SwingViewer extends JPanel implements Runnable, ActionListener,
             currentIcon = (JLabel) e.getComponent();
             currentIcon.setBorder(lineBorder);
             Icon img = currentIcon.getIcon();
-            if (e.isPopupTrigger() && img != null && !img.equals(baseStationImg)) {
+            if (e.isPopupTrigger() && img != null
+                    && !img.equals(baseStationImg)) {
                 popMenu.setVisible(true);
                 popMenu.show(e.getComponent(), e.getX(), e.getY());
             }

@@ -11,6 +11,8 @@ public class SlaveConfig implements Serializable {
 
     int slavePosX;
     int slavePosY;
+    int slaveMidX;
+    int slaveMidY;
     double batteryVolt;
     short state;
 
@@ -37,6 +39,18 @@ public class SlaveConfig implements Serializable {
     }
     public void setState(short s) {
         state = s;
+    }
+    public int getSlaveMidX() {
+        return slaveMidX;
+    }
+    public void setSlaveMidX(int slaveMidX) {
+        this.slaveMidX = slaveMidX;
+    }
+    public int getSlaveMidY() {
+        return slaveMidY;
+    }
+    public void setSlaveMidY(int slaveMidY) {
+        this.slaveMidY = slaveMidY;
     }
 
 }
