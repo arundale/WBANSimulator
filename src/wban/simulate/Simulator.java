@@ -63,7 +63,7 @@ public class Simulator {
     }
 
     public PointSet buildPathFor(SlaveConfig sc) {
-        return pathFinder.buildPathFor(sc, config);
+        return pathFinder.buildPathFor(sc, config, null);
     }
 
 }

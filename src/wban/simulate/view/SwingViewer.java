@@ -11,7 +11,9 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.util.Hashtable;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.BorderFactory;
 import javax.swing.Icon;
@@ -30,9 +32,8 @@ import javax.swing.border.Border;
 import wban.simulate.Simulator;
 import wban.simulate.config.BaseStationConfig;
 import wban.simulate.config.SlaveConfig;
-import wban.simulate.path.BoundingSquare;
+import wban.simulate.path.LineSegment;
 import wban.simulate.path.PointSet;
-import wban.simulate.path.Pt;
 
 public class SwingViewer extends JPanel implements Runnable, ActionListener,
         MouseMotionListener, MouseListener {
@@ -139,12 +140,29 @@ public class SwingViewer extends JPanel implements Runnable, ActionListener,
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
         if (currentPointSet != null) {
-            BoundingSquare bs = currentPointSet.getBoundingSquare();
-            Pt[] vertices = bs.getBounds();
-            g.drawLine(vertices[0].getX(), vertices[0].getY(), vertices[1].getX(), vertices[1].getY());
-            g.drawLine(vertices[1].getX(), vertices[1].getY(), vertices[2].getX(), vertices[2].getY());
-            g.drawLine(vertices[2].getX(), vertices[2].getY(), vertices[3].getX(), vertices[3].getY());
-            g.drawLine(vertices[3].getX(), vertices[3].getY(), vertices[0].getX(), vertices[0].getY());
+            List<Hashtable<SlaveConfig, List<LineSegment>>> lstPaths = currentPointSet
+                    .getPaths();
+            if (lstPaths != null) {
+                for (Hashtable<SlaveConfig, List<LineSegment>> hmLines : lstPaths) {
+                    for (List<LineSegment> lstLS : hmLines.values()) {
+                        for (LineSegment ls : lstLS) {
+                            int[] x1y1x2y2 = ls.getFromTo();
+                            g.drawLine(x1y1x2y2[0], x1y1x2y2[1], x1y1x2y2[2],
+                                    x1y1x2y2[3]);
+                        }
+                    }
+                }
+            }
+            // BoundingSquare bs = currentPointSet.getBoundingSquare();
+            // Pt[] vertices = bs.getBounds();
+            // g.drawLine(vertices[0].getX(), vertices[0].getY(),
+            // vertices[1].getX(), vertices[1].getY());
+            // g.drawLine(vertices[1].getX(), vertices[1].getY(),
+            // vertices[2].getX(), vertices[2].getY());
+            // g.drawLine(vertices[2].getX(), vertices[2].getY(),
+            // vertices[3].getX(), vertices[3].getY());
+            // g.drawLine(vertices[3].getX(), vertices[3].getY(),
+            // vertices[0].getX(), vertices[0].getY());
         }
     }
 
@@ -297,10 +315,8 @@ public class SwingViewer extends JPanel implements Runnable, ActionListener,
                             .getAllSlaveConfig().get(idx);
                     slaveConfig.setSlavePosX(x);
                     slaveConfig.setSlavePosY(y);
-                    slaveConfig.setSlaveMidX(x + currentIcon.getWidth()
-                            / 2);
-                    slaveConfig.setSlaveMidY(y + currentIcon.getHeight()
-                            / 2);
+                    slaveConfig.setSlaveMidX(x + currentIcon.getWidth() / 2);
+                    slaveConfig.setSlaveMidY(y + currentIcon.getHeight() / 2);
                 }
             }
         }
