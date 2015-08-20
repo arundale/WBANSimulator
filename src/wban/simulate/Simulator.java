@@ -1,4 +1,3 @@
-
 package wban.simulate;
 
 import java.io.File;
@@ -8,11 +7,14 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.Hashtable;
+import java.util.List;
 
 import wban.simulate.config.Config;
 import wban.simulate.config.SlaveConfig;
+import wban.simulate.path.LineSegment;
 import wban.simulate.path.PathFinder;
-import wban.simulate.path.PointSet;
+import wban.simulate.path.PathSet;
 
 public class Simulator {
 
@@ -62,7 +64,7 @@ public class Simulator {
         return config;
     }
 
-    public PointSet buildPathFor(SlaveConfig sc) {
+    public PathSet buildPathFor(SlaveConfig sc) {
         return pathFinder.buildPathFor(sc, config, null);
     }
 

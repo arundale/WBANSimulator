@@ -1,15 +1,19 @@
 package wban.simulate.util;
 
-import wban.simulate.path.Pt;
+import wban.simulate.path.Point;
 
 public class Util {
 
-    public static double distanceBetween(Pt from, Pt to) {
+    public static double distanceBetween(Point from, Point to) {
         double xDiff = to.getX() - from.getX();
         double yDiff = to.getY() - from.getY();
         double sqrXDiff = xDiff * xDiff;
         double sqrYDiff = yDiff * yDiff;
         return Math.sqrt(sqrXDiff + sqrYDiff);
+    }
+
+    public static double angle180(Point pt1, Point pt2) {
+        return angle180(pt1.getX(), pt1.getY(), pt2.getX(), pt2.getY());
     }
 
     public static double angle180(int x1, int y1, int x2, int y2) {
@@ -27,7 +31,7 @@ public class Util {
         return theta;
     }
 
-    public static double angle360(Pt pt1, Pt pt2) {
+    public static double angle360(Point pt1, Point pt2) {
         double theta = angle180(pt1.getX(), pt1.getY(), pt2.getX(), pt2.getY());
         if (theta < 0)
             theta = 360 + theta; // range [0, 360)

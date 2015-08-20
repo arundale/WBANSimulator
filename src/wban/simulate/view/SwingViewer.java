@@ -35,7 +35,7 @@ import wban.simulate.Simulator;
 import wban.simulate.config.BaseStationConfig;
 import wban.simulate.config.SlaveConfig;
 import wban.simulate.path.LineSegment;
-import wban.simulate.path.PointSet;
+import wban.simulate.path.PathSet;
 import wban.simulate.util.Util;
 
 public class SwingViewer extends JPanel implements Runnable, ActionListener,
@@ -66,7 +66,7 @@ public class SwingViewer extends JPanel implements Runnable, ActionListener,
     int currentX, currentY;
 
     Simulator simulator = Simulator.getInstance();
-    private PointSet currentPointSet = null;
+    private PathSet currentPointSet = null;
 
     public SwingViewer() {
         JMenuItem miChangeDetails = new JMenuItem(strMIChangeDetails);
@@ -93,6 +93,7 @@ public class SwingViewer extends JPanel implements Runnable, ActionListener,
         f.setBounds(0, 0, (int) screenSize.getWidth(),
                 (int) screenSize.getHeight());
         this.setLayout(null);
+        this.setBackground(Color.WHITE);
         this.setSize((int) screenSize.getWidth(), (int) screenSize.getHeight());
 
         JMenuBar menuBar = new JMenuBar();
@@ -116,7 +117,7 @@ public class SwingViewer extends JPanel implements Runnable, ActionListener,
         this.add(popMenu);
         this.addMouseListener(new MouseAdapter() {
             public void mousePressed(MouseEvent evt) {
-                if (evt.isPopupTrigger()) {
+                if (true) { // evt.isPopupTrigger()) {
                     popMenu.show(evt.getComponent(), evt.getX(), evt.getY());
                     currentX = evt.getX();
                     currentY = evt.getY();
@@ -143,52 +144,41 @@ public class SwingViewer extends JPanel implements Runnable, ActionListener,
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
         if (currentPointSet != null) {
-            List<Hashtable<SlaveConfig, List<LineSegment>>> lstPaths = currentPointSet
-                    .getPaths();
-            if (lstPaths != null) {
-                for (Hashtable<SlaveConfig, List<LineSegment>> hmLines : lstPaths) {
-                    for (List<LineSegment> lstLS : hmLines.values()) {
-                        for (LineSegment ls : lstLS) {
-                            int[] c = ls.getFromTo();
-                            double lineLen = Util.distanceBetween(ls.getFrom(),
-                                    ls.getTo());
-                            g.drawLine(c[0], c[1], c[2], c[3]);
-                            int sx = (int) ((c[0] + c[2]) / 2.1);
-                            int sy = (int) ((c[1] + c[3]) / 2.1);
-                            int cx = (int) ((c[0] + c[2]) / 2);
-                            int cy = (int) ((c[1] + c[3]) / 2);
-                            int d = 10;
-                            double angle = Util.angle360(ls.getFrom(),
-                                    ls.getTo());
-                            double anglePlus45 = angle + 45;
-                            if (anglePlus45 > 360)
-                                anglePlus45 = anglePlus45 % 360;
-                            double angleMinus45 = angle - 45;
-                            if (angleMinus45 < 360)
-                                angleMinus45 = angleMinus45 + 360;
-                            anglePlus45 = Math.toRadians(anglePlus45);
-                            angleMinus45 = Math.toRadians(angleMinus45);
-                            int ax1 = (int) (cx - d * Math.cos(anglePlus45));
-                            int ay1 = (int) (cy - d * Math.sin(anglePlus45));
-                            int ax2 = (int) (cx - d * Math.cos(angleMinus45));
-                            int ay2 = (int) (cy - d * Math.sin(angleMinus45));
-                            g.drawLine(cx, cy, ax1, ay1);
-                            g.drawLine(cx, cy, ax2, ay2);
-                            g.drawString(ls.getLabel(), sx, sy);
-                        }
-                    }
+            Hashtable<SlaveConfig, List<LineSegment>> hmLines = currentPointSet
+                    .getAllPaths();
+            for (List<LineSegment> lstLS : hmLines.values()) {
+                for (LineSegment ls : lstLS) {
+                    if (ls.isShortestPath())
+                        g.setColor(Color.RED);
+                    else
+                        g.setColor(Color.BLACK);
+                    int[] c = ls.getFromTo();
+                    double lineLen = Util.distanceBetween(ls.getFrom(),
+                            ls.getTo());
+                    g.drawLine(c[0], c[1], c[2], c[3]);
+                    int sx = (int) ((c[0] + c[2]) / 2.1);
+                    int sy = (int) ((c[1] + c[3]) / 2.1);
+                    int cx = (int) ((c[0] + c[2]) / 2);
+                    int cy = (int) ((c[1] + c[3]) / 2);
+                    int d = 10;
+                    double angle = Util.angle360(ls.getFrom(), ls.getTo());
+                    double anglePlus45 = angle + 45;
+                    if (anglePlus45 > 360)
+                        anglePlus45 = anglePlus45 % 360;
+                    double angleMinus45 = angle - 45;
+                    if (angleMinus45 < 360)
+                        angleMinus45 = angleMinus45 + 360;
+                    anglePlus45 = Math.toRadians(anglePlus45);
+                    angleMinus45 = Math.toRadians(angleMinus45);
+                    int ax1 = (int) (cx - d * Math.cos(anglePlus45));
+                    int ay1 = (int) (cy - d * Math.sin(anglePlus45));
+                    int ax2 = (int) (cx - d * Math.cos(angleMinus45));
+                    int ay2 = (int) (cy - d * Math.sin(angleMinus45));
+                    g.drawLine(cx, cy, ax1, ay1);
+                    g.drawLine(cx, cy, ax2, ay2);
+                    g.drawString(ls.getLabel(), sx, sy);
                 }
             }
-            // BoundingSquare bs = currentPointSet.getBoundingSquare();
-            // Pt[] vertices = bs.getBounds();
-            // g.drawLine(vertices[0].getX(), vertices[0].getY(),
-            // vertices[1].getX(), vertices[1].getY());
-            // g.drawLine(vertices[1].getX(), vertices[1].getY(),
-            // vertices[2].getX(), vertices[2].getY());
-            // g.drawLine(vertices[2].getX(), vertices[2].getY(),
-            // vertices[3].getX(), vertices[3].getY());
-            // g.drawLine(vertices[3].getX(), vertices[3].getY(),
-            // vertices[0].getX(), vertices[0].getY());
         }
     }
 
@@ -359,7 +349,7 @@ public class SwingViewer extends JPanel implements Runnable, ActionListener,
             currentIcon = (JLabel) e.getComponent();
             currentIcon.setBorder(lineBorder);
             Icon img = currentIcon.getIcon();
-            if (e.isPopupTrigger() && img != null
+            if (/* e.isPopupTrigger() && */img != null
                     && !img.equals(baseStationImg)) {
                 popMenu.setVisible(true);
                 popMenu.show(e.getComponent(), e.getX(), e.getY());
