@@ -1,22 +1,16 @@
 package wban.simulate.path;
 
-import wban.simulate.config.BaseStationConfig;
-import wban.simulate.config.SlaveConfig;
 import wban.simulate.util.Util;
 
 public class LineSegment {
 
     Point pt1, pt2;
     String label = null;
-    SlaveConfig sc = null;
-    BaseStationConfig bs = null;
     double length = 0;
 
-    public LineSegment(Point pt1, Point pt2, String l, SlaveConfig sc, BaseStationConfig bs) {
+    public LineSegment(Point pt1, Point pt2, String l) {
         this.pt1 = pt1;
         this.pt2 = pt2;
-        this.sc = sc;
-        this.bs = bs;
         label = l;
         length = Util.distanceBetween(pt1, pt2);
     }
@@ -43,9 +37,17 @@ public class LineSegment {
 
     public boolean isShortestPath() {
         Point prev = pt2.getPrevious();
-        if (prev != null && prev.equals(pt1))
+        if (prev != null && prev == pt1)
             return true;
         return false;
+    }
+
+    public double getLength() {
+        return length;
+    }
+
+    public void setLength(double length) {
+        this.length = length;
     }
 
 }

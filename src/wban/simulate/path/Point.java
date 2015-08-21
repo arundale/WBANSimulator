@@ -1,22 +1,29 @@
 package wban.simulate.path;
 
-public class Point {
+import java.io.Serializable;
 
-    int x, y;
+public class Point implements Serializable {
+
+    private static final long serialVersionUID = -7557568204627720060L;
+
+    protected int posX;
+    protected int posY;
+    protected int midX;
+    protected int midY;
+
     Point previous = null;
-    double distanceFromPrevious = 99999;
+    double distanceFromPrevious;
 
-    public Point(int x, int y) {
-        this.x = x;
-        this.y = y;
+    protected Point() {
+        resetPrevious();
     }
 
     public int getX() {
-        return x;
+        return midX;
     }
 
     public int getY() {
-        return y;
+        return midY;
     }
 
     public Point getPrevious() {
@@ -25,6 +32,19 @@ public class Point {
 
     public void setPrevious(Point previous) {
         this.previous = previous;
+    }
+
+    public double getDistanceFromPrevious() {
+        return distanceFromPrevious;
+    }
+
+    public void setDistanceFromPrevious(double distanceFromPrevious) {
+        this.distanceFromPrevious = distanceFromPrevious;
+    }
+
+    public void resetPrevious() {
+        previous = null;
+        distanceFromPrevious = 99999.0;
     }
 
 }

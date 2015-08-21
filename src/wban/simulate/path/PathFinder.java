@@ -1,6 +1,5 @@
 package wban.simulate.path;
 
-import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -15,44 +14,43 @@ public class PathFinder {
 
     public PathSet buildPathFor(SlaveConfig sc, Config config, PathSet pathSet) {
 
-        if (pathSet == null)
-            pathSet = new PathSet();
-        Point from = new Point(sc.getSlaveMidX(), sc.getSlaveMidY());
-        pathSet.setFrom(from);
+        sc.resetPrevious();
         BaseStationConfig bsConfig = config.getBSConfig(0);
-        Point to = new Point(bsConfig.getBSMidX(), bsConfig.getBSMidY());
-        pathSet.setTo(to);
-        double distanceToBS = Util.distanceBetween(from, to);
-        List<LineSegment> lstLS = pathSet.getPath(sc);
+        bsConfig.resetPrevious();
+        if (pathSet == null) {
+            pathSet = new PathSet();
+            pathSet.setFrom(sc);
+            pathSet.setTo(bsConfig);
+        }
+        double distanceToBS = Util.distanceBetween(sc, bsConfig);
+        List<LineSegment> lstLS = pathSet.getPaths(sc);
         if (lstLS == null) {
             lstLS = new LinkedList<LineSegment>();
             pathSet.setPath(sc, lstLS);
         }
         if (distanceToBS < MAX_HOP_DISTANCE) {
-            LineSegment path = new LineSegment(from, to, String.valueOf(Math
-                    .round(distanceToBS)), sc, bsConfig);
+            LineSegment path = new LineSegment(sc, bsConfig, String.valueOf(Math
+                    .round(distanceToBS)));
             lstLS.add(path);
             return pathSet;
         }
-        double angleToBS = Util.angle180(from, to);
+        double angleToBS = Util.angle180(sc, bsConfig);
         for (SlaveConfig otherSlave : config.getAllSlaveConfig()) {
+            otherSlave.resetPrevious();
             if (otherSlave.equals(sc))
                 continue;
             if (otherSlave.getState() == SlaveConfig.ST_DOWN)
                 continue;
-            Point otherSlavePt = new Point(otherSlave.getSlaveMidX(),
-                    otherSlave.getSlaveMidY());
-            double distanceToOtherSlave = Util.distanceBetween(from,
-                    otherSlavePt);
+            double distanceToOtherSlave = Util.distanceBetween(sc,
+                    otherSlave);
             if (distanceToOtherSlave > MAX_HOP_DISTANCE)
                 continue;
-            double angleToOtherSlave = Util.angle180(from, otherSlavePt);
+            double angleToOtherSlave = Util.angle180(sc, otherSlave);
             double angleDiff = Math.abs(angleToOtherSlave - angleToBS);
             if (angleDiff > 60)
                 continue;
-            LineSegment ls = new LineSegment(from, otherSlavePt,
-                    String.valueOf(Math.round(distanceToOtherSlave)),
-                    otherSlave, bsConfig);
+            LineSegment ls = new LineSegment(sc, otherSlave,
+                    String.valueOf(Math.round(distanceToOtherSlave)));
             lstLS.add(ls);
             buildPathFor(otherSlave, config, pathSet);
         }

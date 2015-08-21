@@ -2,31 +2,29 @@ package wban.simulate.config;
 
 import java.io.Serializable;
 
-public class SlaveConfig implements Serializable {
+import wban.simulate.path.Point;
+
+public class SlaveConfig extends Point implements Serializable {
 
     private static final long serialVersionUID = 1796860855765837767L;
     public static final short ST_DOWN = 0;
     public static final short ST_CHARGING = 1;
     public static final short ST_DISCHARGING = 2;
 
-    int slavePosX;
-    int slavePosY;
-    int slaveMidX;
-    int slaveMidY;
     double batteryVolt;
     short state;
 
     public int getSlavePosX() {
-        return slavePosX;
+        return posX;
     }
     public void setSlavePosX(int slavePosX) {
-        this.slavePosX = slavePosX;
+        this.posX = slavePosX;
     }
     public int getSlavePosY() {
-        return slavePosY;
+        return posY;
     }
     public void setSlavePosY(int slavePosY) {
-        this.slavePosY = slavePosY;
+        this.posY = slavePosY;
     }
     public double getBatteryVolt() {
         return batteryVolt;
@@ -41,16 +39,16 @@ public class SlaveConfig implements Serializable {
         state = s;
     }
     public int getSlaveMidX() {
-        return slaveMidX;
+        return midX;
     }
     public void setSlaveMidX(int slaveMidX) {
-        this.slaveMidX = slaveMidX;
+        this.midX = slaveMidX;
     }
     public int getSlaveMidY() {
-        return slaveMidY;
+        return midY;
     }
     public void setSlaveMidY(int slaveMidY) {
-        this.slaveMidY = slaveMidY;
+        this.midY = slaveMidY;
     }
 
 }

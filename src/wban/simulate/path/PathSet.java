@@ -1,7 +1,6 @@
 package wban.simulate.path;
 
 import java.util.Hashtable;
-import java.util.LinkedList;
 import java.util.List;
 
 import wban.simulate.config.SlaveConfig;
@@ -9,7 +8,8 @@ import wban.simulate.config.SlaveConfig;
 public class PathSet {
 
     Point from, to;
-    Hashtable<SlaveConfig, List<LineSegment>> pathMap = new Hashtable<SlaveConfig, List<LineSegment>>();
+    Hashtable<Point, List<LineSegment>> pathMap = new Hashtable<Point, List<LineSegment>>();
+    private List<Point[]> shortestPath;
 
     public void setFrom(Point p) {
         from = p;
@@ -27,16 +27,24 @@ public class PathSet {
         return to;
     }
 
-    public List<LineSegment> getPath(SlaveConfig sc) {
-        return pathMap.get(sc);
+    public List<LineSegment> getPaths(Point pt) {
+        return pathMap.get(pt);
     }
 
     public void setPath(SlaveConfig sc, List<LineSegment> path) {
         pathMap.put(sc, path);
     }
 
-    public Hashtable<SlaveConfig, List<LineSegment>> getAllPaths() {
+    public Hashtable<Point, List<LineSegment>> getAllPaths() {
         return pathMap;
+    }
+
+    public void setShortest(List<Point[]> lstShortest) {
+        shortestPath = lstShortest;
+    }
+
+    public List<Point[]> getShortestPath() {
+        return shortestPath;
     }
 
 }

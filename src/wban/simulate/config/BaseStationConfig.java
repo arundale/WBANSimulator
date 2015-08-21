@@ -2,36 +2,46 @@ package wban.simulate.config;
 
 import java.io.Serializable;
 
-public class BaseStationConfig implements Serializable {
+import wban.simulate.path.Point;
 
-    int bsPosX;
-    int bsPosY;
-    int bsMidX;
-    int bsMidY;
+public class BaseStationConfig extends Point implements Serializable {
+
+    public BaseStationConfig() {
+        super();
+    }
+
     private static final long serialVersionUID = 4712279332004017414L;
+
     public int getBSPosX() {
-        return bsPosX;
+        return posX;
     }
+
     public void setBSPosX(int bsPosX) {
-        this.bsPosX = bsPosX;
+        this.posX = bsPosX;
     }
+
     public int getBSPosY() {
-        return bsPosY;
+        return posY;
     }
+
     public void setBSPosY(int bsPosY) {
-        this.bsPosY = bsPosY;
+        this.posY = bsPosY;
     }
+
     public int getBSMidX() {
-        return bsMidX;
+        return midX;
     }
+
     public void setBSMidX(int bsMidX) {
-        this.bsMidX = bsMidX;
+        this.midX = bsMidX;
     }
+
     public int getBSMidY() {
-        return bsMidY;
+        return midY;
     }
+
     public void setBSMidY(int bsMidY) {
-        this.bsMidY = bsMidY;
+        this.midY = bsMidY;
     }
 
 }
