@@ -1,9 +1,11 @@
 package wban.simulate.view;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -13,6 +15,8 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import javax.swing.BorderFactory;
 import javax.swing.Icon;
@@ -30,24 +34,16 @@ import javax.swing.border.Border;
 
 import wban.simulate.Simulator;
 import wban.simulate.config.BaseStationConfig;
-import wban.simulate.config.SlaveConfig;
+import wban.simulate.config.SensorNodeConfig;
 import wban.simulate.path.LineSegment;
 import wban.simulate.path.PathSet;
 import wban.simulate.path.Point;
 import wban.simulate.util.Util;
 
-public class SwingViewer extends JPanel implements Runnable, ActionListener,
-        MouseMotionListener, MouseListener {
+public class SwingViewer extends JPanel implements Runnable, ActionListener, MouseMotionListener, MouseListener {
 
     static final long serialVersionUID = 474227420717631309L;
-    ImageIcon baseStationImg = new ImageIcon(this.getClass().getResource(
-            "/images/BaseStationIcon.png"));
-    ImageIcon sensorClusterNormalImg = new ImageIcon(this.getClass()
-            .getResource("/images/SensorClusterIcon.png"));
-    ImageIcon sensorClusterBatteryChargingImg = new ImageIcon(this.getClass()
-            .getResource("/images/SensorClusterBatteryChargingIcon.png"));
-    ImageIcon sensorClusterBatteryDownImg = new ImageIcon(this.getClass()
-            .getResource("/images/SensorClusterBatteryDownIcon.png"));
+
     static final String strMIAddBaseStation = "Add Base Station";
     static final String strMIAddSensorCluster = "Add Sensor Cluster";
     static final String strMIChangeDetails = "Change details";
@@ -57,14 +53,26 @@ public class SwingViewer extends JPanel implements Runnable, ActionListener,
     static final String strMISendData = "Send data";
     static final String strMILoadConfig = "Load from Configuration";
     static final String strMISaveConfig = "Save Configuration";
+    static final String strMIStartSimulation = "Start Simulation";
+    static final String strMIStopSimulation = "Stop Simulation";
+
     final JPopupMenu popMenu = new JPopupMenu();
     final Border lineBorder = BorderFactory.createLineBorder(Color.black);
+
+    ImageIcon baseStationImg = new ImageIcon(this.getClass().getResource("/images/BaseStationIcon.png"));
+    ImageIcon sensorClusterNormalImg = new ImageIcon(this.getClass().getResource("/images/SensorClusterIcon.png"));
+    ImageIcon sensorClusterBatteryChargingImg = new ImageIcon(
+            this.getClass().getResource("/images/SensorClusterBatteryChargingIcon.png"));
+    ImageIcon sensorClusterBatteryDownImg = new ImageIcon(
+            this.getClass().getResource("/images/SensorClusterBatteryDownIcon.png"));
 
     JLabel currentIcon = null;
     int currentX, currentY;
 
     Simulator simulator = Simulator.getInstance();
-    private PathSet currentPathSet = null;
+    Timer timer = new Timer();
+
+    private boolean isTimerSet = false;
 
     public SwingViewer() {
         JMenuItem miChangeDetails = new JMenuItem(strMIChangeDetails);
@@ -88,8 +96,7 @@ public class SwingViewer extends JPanel implements Runnable, ActionListener,
         final JFrame f = new JFrame("WBAN Simulation Viewer");
         f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        f.setBounds(0, 0, (int) screenSize.getWidth(),
-                (int) screenSize.getHeight());
+        f.setBounds(0, 0, (int) screenSize.getWidth(), (int) screenSize.getHeight());
         this.setLayout(null);
         this.setBackground(Color.WHITE);
         this.setSize((int) screenSize.getWidth(), (int) screenSize.getHeight());
@@ -104,6 +111,12 @@ public class SwingViewer extends JPanel implements Runnable, ActionListener,
         JMenuItem miSaveConfig = new JMenuItem(strMISaveConfig);
         miSaveConfig.addActionListener(this);
         menuMain.add(miSaveConfig);
+        JMenuItem miStartSimulation = new JMenuItem(strMIStartSimulation);
+        miStartSimulation.addActionListener(this);
+        menuMain.add(miStartSimulation);
+        JMenuItem miStopSimulation = new JMenuItem(strMIStopSimulation);
+        miStopSimulation.addActionListener(this);
+        menuMain.add(miStopSimulation);
 
         final JPopupMenu popMenu = new JPopupMenu();
         JMenuItem miBase = new JMenuItem(strMIAddBaseStation);
@@ -115,7 +128,7 @@ public class SwingViewer extends JPanel implements Runnable, ActionListener,
         this.add(popMenu);
         this.addMouseListener(new MouseAdapter() {
             public void mousePressed(MouseEvent evt) {
-                if (true) { // evt.isPopupTrigger()) {
+                if (evt.isPopupTrigger()) {
                     popMenu.show(evt.getComponent(), evt.getX(), evt.getY());
                     currentX = evt.getX();
                     currentY = evt.getY();
@@ -138,8 +151,9 @@ public class SwingViewer extends JPanel implements Runnable, ActionListener,
         return screenSize;
     }
 
-    private void drawLineSegment(Point from, Point to, Color c, String label, Graphics g) {
+    private void drawLineSegment(Point from, Point to, Color c, int size, String label, Graphics2D g) {
         g.setColor(c);
+        g.setStroke(new BasicStroke(size));
         // double lineLen = Util.distanceBetween(ls.getFrom(),
         // ls.getTo());
         int x1 = from.getX();
@@ -173,26 +187,25 @@ public class SwingViewer extends JPanel implements Runnable, ActionListener,
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
+        PathSet currentPathSet = simulator.getCurrentPathSet();
         if (currentPathSet != null) {
-            Hashtable<Point, List<LineSegment>> hmLines = currentPathSet
-                    .getAllPaths();
+            Hashtable<Point, List<LineSegment>> hmLines = currentPathSet.getAllPaths();
             for (List<LineSegment> lstLS : hmLines.values()) {
                 for (LineSegment ls : lstLS) {
-                    drawLineSegment(ls.getFrom(), ls.getTo(), Color.BLACK, ls.getLabel(), g);
+                    drawLineSegment(ls.getFrom(), ls.getTo(), Color.BLACK, 1, ls.getLabel(), (Graphics2D) g);
                 }
             }
             List<Point[]> shortestPath = currentPathSet.getShortestPath();
-            for (Point[] line: shortestPath) {
+            for (Point[] line : shortestPath) {
                 String label = String.valueOf(Math.round(Util.distanceBetween(line[0], line[1])));
-                drawLineSegment(line[0], line[1], Color.RED, label, g);
+                drawLineSegment(line[0], line[1], Color.RED, 3, label, (Graphics2D) g);
             }
         }
     }
 
     private JLabel addBaseStation(int x, int y) {
         JLabel icon = new JLabel(baseStationImg);
-        icon.setBounds(x, y, baseStationImg.getIconWidth(),
-                baseStationImg.getIconHeight());
+        icon.setBounds(x, y, baseStationImg.getIconWidth(), baseStationImg.getIconHeight());
         icon.addMouseListener(this);
         icon.addMouseMotionListener(this);
         this.add(icon);
@@ -206,13 +219,13 @@ public class SwingViewer extends JPanel implements Runnable, ActionListener,
     public JLabel addSensorCluster(int x, int y, short state) {
         ImageIcon img = null;
         switch (state) {
-        case SlaveConfig.ST_DISCHARGING:
+        case SensorNodeConfig.ST_DISCHARGING:
             img = sensorClusterNormalImg;
             break;
-        case SlaveConfig.ST_CHARGING:
+        case SensorNodeConfig.ST_CHARGING:
             img = sensorClusterBatteryChargingImg;
             break;
-        case SlaveConfig.ST_DOWN:
+        case SensorNodeConfig.ST_DOWN:
             img = sensorClusterBatteryDownImg;
             break;
         }
@@ -244,43 +257,55 @@ public class SwingViewer extends JPanel implements Runnable, ActionListener,
             int bsIdx = simulator.getConfig().addBaseStation(bsConfig);
             icon.setToolTipText(String.valueOf(bsIdx));
         } else if (strCommand.equals(strMIAddSensorCluster)) {
-            JLabel icon = addSensorCluster(currentX, currentY,
-                    SlaveConfig.ST_DISCHARGING);
-            SlaveConfig slaveConfig = new SlaveConfig();
-            slaveConfig.setState(SlaveConfig.ST_DISCHARGING);
+            JLabel icon = addSensorCluster(currentX, currentY, SensorNodeConfig.ST_DISCHARGING);
+            SensorNodeConfig slaveConfig = new SensorNodeConfig();
+            slaveConfig.setState(SensorNodeConfig.ST_DISCHARGING);
             slaveConfig.setSlavePosX(currentX);
             slaveConfig.setSlavePosY(currentY);
             slaveConfig.setSlaveMidX(currentX + currentIcon.getWidth() / 2);
             slaveConfig.setSlaveMidY(currentY + currentIcon.getHeight() / 2);
-            int slaveIdx = simulator.getConfig().addSlaveConfig(slaveConfig);
+            int slaveIdx = simulator.getConfig().addSensorNodeConfig(slaveConfig);
             icon.setToolTipText(String.valueOf(slaveIdx));
         } else if (strCommand.equals(strMIChargeBattery)) {
             currentIcon.setIcon(sensorClusterBatteryChargingImg);
             this.revalidate();
             int idx = Integer.valueOf(currentIcon.getToolTipText());
-            simulator.getConfig().getSlaveConfig(idx)
-                    .setState(SlaveConfig.ST_CHARGING);
+            simulator.getConfig().getSensorNodeConfig(idx).setState(SensorNodeConfig.ST_CHARGING);
         } else if (strCommand.equals(strMIStopCharging)) {
             currentIcon.setIcon(sensorClusterNormalImg);
             this.revalidate();
             int idx = Integer.valueOf(currentIcon.getToolTipText());
-            simulator.getConfig().getSlaveConfig(idx)
-                    .setState(SlaveConfig.ST_DISCHARGING);
+            simulator.getConfig().getSensorNodeConfig(idx).setState(SensorNodeConfig.ST_DISCHARGING);
         } else if (strCommand.equals(strMIBatteryDown)) {
             currentIcon.setIcon(sensorClusterBatteryDownImg);
             this.revalidate();
             int idx = Integer.valueOf(currentIcon.getToolTipText());
-            simulator.getConfig().getSlaveConfig(idx)
-                    .setState(SlaveConfig.ST_DOWN);
+            simulator.getConfig().getSensorNodeConfig(idx).setState(SensorNodeConfig.ST_DOWN);
         } else if (strCommand.equals(strMISendData)) {
             int id = Integer.valueOf(currentIcon.getToolTipText());
-            SlaveConfig sc = simulator.getConfig().getSlaveConfig(id);
-            currentPathSet = simulator.buildPathFor(sc);
+            SensorNodeConfig sc = simulator.getConfig().getSensorNodeConfig(id);
+            simulator.simulateDataTransmission(sc);
         } else if (strCommand.equals(strMILoadConfig)) {
             simulator.loadConfig();
             redrawConfig();
         } else if (strCommand.equals(strMISaveConfig)) {
             simulator.saveConfig();
+        } else if (strCommand.equals(strMIStartSimulation)) {
+            if (isTimerSet)
+                return;
+            timer.scheduleAtFixedRate(new TimerTask() {
+                @Override
+                public void run() {
+                    simulator.simulateNext();
+                    repaint();
+                }
+            }, 0, simulator.getConfig().getDataSendFrequencyMillis());
+            System.out.println("Started");
+            isTimerSet = true;
+        } else if (strCommand.equals(strMIStopSimulation)) {
+            timer.cancel();
+            isTimerSet = false;
+            System.out.println("Stopped");
         }
         this.repaint();
     }
@@ -290,23 +315,18 @@ public class SwingViewer extends JPanel implements Runnable, ActionListener,
             if (c instanceof JLabel) {
                 JLabel l = (JLabel) c;
                 Icon i = l.getIcon();
-                if (i.equals(baseStationImg)
-                        || i.equals(sensorClusterNormalImg)
-                        || i.equals(sensorClusterBatteryChargingImg)
-                        || i.equals(sensorClusterBatteryDownImg)) {
+                if (i.equals(baseStationImg) || i.equals(sensorClusterNormalImg)
+                        || i.equals(sensorClusterBatteryChargingImg) || i.equals(sensorClusterBatteryDownImg)) {
                     this.remove(c);
                 }
             }
         }
-        List<SlaveConfig> lstSlaveConfig = simulator.getConfig()
-                .getAllSlaveConfig();
-        for (SlaveConfig sc : lstSlaveConfig) {
-            JLabel label = addSensorCluster(sc.getSlavePosX(),
-                    sc.getSlavePosY(), sc.getState());
+        List<SensorNodeConfig> lstSlaveConfig = simulator.getConfig().getAllSlaveConfig();
+        for (SensorNodeConfig sc : lstSlaveConfig) {
+            JLabel label = addSensorCluster(sc.getSlavePosX(), sc.getSlavePosY(), sc.getState());
             label.setToolTipText(String.valueOf(lstSlaveConfig.indexOf(sc)));
         }
-        List<BaseStationConfig> lstBSConfig = simulator.getConfig()
-                .getAllBSConfig();
+        List<BaseStationConfig> lstBSConfig = simulator.getConfig().getAllBSConfig();
         for (BaseStationConfig bsc : lstBSConfig) {
             JLabel label = addBaseStation(bsc.getBSPosX(), bsc.getBSPosY());
             label.setToolTipText(String.valueOf(lstBSConfig.indexOf(bsc)));
@@ -322,22 +342,18 @@ public class SwingViewer extends JPanel implements Runnable, ActionListener,
         if (currentIcon != null) {
             x += currentIcon.getX();
             y += currentIcon.getY();
-            if (x >= 0 && x <= this.getWidth() && y >= 0
-                    && y <= this.getHeight()) {
-                currentIcon.setBounds(x, y, currentIcon.getWidth(),
-                        currentIcon.getHeight());
+            if (x >= 0 && x <= this.getWidth() && y >= 0 && y <= this.getHeight()) {
+                currentIcon.setBounds(x, y, currentIcon.getWidth(), currentIcon.getHeight());
                 if (currentIcon.getIcon().equals(baseStationImg)) {
                     int bsIdx = Integer.parseInt(currentIcon.getToolTipText());
-                    BaseStationConfig bsConfig = simulator.getConfig()
-                            .getAllBSConfig().get(bsIdx);
+                    BaseStationConfig bsConfig = simulator.getConfig().getAllBSConfig().get(bsIdx);
                     bsConfig.setBSPosX(x);
                     bsConfig.setBSPosY(y);
                     bsConfig.setBSMidX(x + currentIcon.getWidth() / 2);
                     bsConfig.setBSMidY(y + currentIcon.getHeight() / 2);
                 } else {
                     int idx = Integer.parseInt(currentIcon.getToolTipText());
-                    SlaveConfig slaveConfig = simulator.getConfig()
-                            .getAllSlaveConfig().get(idx);
+                    SensorNodeConfig slaveConfig = simulator.getConfig().getAllSlaveConfig().get(idx);
                     slaveConfig.setSlavePosX(x);
                     slaveConfig.setSlavePosY(y);
                     slaveConfig.setSlaveMidX(x + currentIcon.getWidth() / 2);
@@ -358,8 +374,7 @@ public class SwingViewer extends JPanel implements Runnable, ActionListener,
             currentIcon = (JLabel) e.getComponent();
             currentIcon.setBorder(lineBorder);
             Icon img = currentIcon.getIcon();
-            if (/* e.isPopupTrigger() && */img != null
-                    && !img.equals(baseStationImg)) {
+            if (e.isPopupTrigger() && img != null && !img.equals(baseStationImg)) {
                 popMenu.setVisible(true);
                 popMenu.show(e.getComponent(), e.getX(), e.getY());
             }

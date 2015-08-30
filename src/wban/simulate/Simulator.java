@@ -7,9 +7,11 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.LinkedList;
+import java.util.List;
 
-import wban.simulate.config.Config;
-import wban.simulate.config.SlaveConfig;
+import wban.simulate.config.SerializableConfig;
+import wban.simulate.config.SensorNodeConfig;
 import wban.simulate.path.Dijkstra;
 import wban.simulate.path.PathFinder;
 import wban.simulate.path.PathSet;
@@ -19,8 +21,12 @@ public class Simulator {
     private static Simulator instance = new Simulator();
     private static final String configFileName = "config.ser";
 
-    Config config = new Config();
+    SerializableConfig config = new SerializableConfig();
     PathFinder pathFinder = new PathFinder();
+    List<SensorNode> sensorNodes = new LinkedList<SensorNode>();
+    BaseStation baseStation;
+    int currentSensor = 0;
+    private PathSet currentPathSet;
 
     public static Simulator getInstance() {
         return instance;
@@ -30,7 +36,11 @@ public class Simulator {
         try {
             FileInputStream fis = new FileInputStream(configFileName);
             ObjectInputStream ois = new ObjectInputStream(fis);
-            config = (Config) ois.readObject();
+            config = (SerializableConfig) ois.readObject();
+            List<SensorNodeConfig> lstSC = config.getAllSlaveConfig();
+            for (SensorNodeConfig sc : lstSC) {
+                sensorNodes.add(new SensorNode(sc));
+            }
             ois.close();
             fis.close();
         } catch (FileNotFoundException e) {
@@ -58,14 +68,48 @@ public class Simulator {
         }
     }
 
-    public Config getConfig() {
+    public SerializableConfig getConfig() {
         return config;
     }
 
-    public PathSet buildPathFor(SlaveConfig sc) {
-        PathSet pathSet = pathFinder.buildPathFor(sc, config, null);
-        Dijkstra.findShortestPath(sc, pathSet);
+    public PathSet simulateDataTransmission(SensorNodeConfig sc) {
+        PathSet pathSet = pathFinder.buildPath(sc, config, null);
+        pathFinder.findShortestPath(sc, pathSet);
+        currentPathSet = pathSet;
         return pathSet;
     }
 
+    public BaseStation getBaseStation() {
+        return baseStation;
+    }
+
+    public void setBaseStation(BaseStation baseStation) {
+        this.baseStation = baseStation;
+    }
+
+    public List<SensorNode> getSensorNodes() {
+        return sensorNodes;
+    }
+
+    public void addSensorNode(SensorNode sensorNode) {
+        this.sensorNodes.add(sensorNode);
+    }
+
+    public PathSet simulateNext() {
+        PathSet ret = null;
+        if (currentSensor < sensorNodes.size()) {
+            ret = simulateDataTransmission(sensorNodes.get(currentSensor).getSensorNodeConfig());
+            currentSensor++;
+            if (currentSensor == sensorNodes.size())
+                currentSensor = 0;
+        }
+        return ret;
+    }
+
+    public PathSet getCurrentPathSet() {
+        return currentPathSet;
+    }
+
+    public void simulateBatteryDischarge() {
+    }
 }

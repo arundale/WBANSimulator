@@ -3,11 +3,11 @@ package wban.simulate.path;
 import java.util.LinkedList;
 import java.util.List;
 
-import wban.simulate.config.SlaveConfig;
+import wban.simulate.config.SensorNodeConfig;
 
 public class Dijkstra {
 
-    public static void findShortestPath(SlaveConfig from, PathSet pathSet) {
+    public void findShortestPath(SensorNodeConfig from, PathSet pathSet) {
         resolveDistances(pathSet, from, 0);
         List<Point[]> lstShortest = new LinkedList<Point[]>();
         Point to = pathSet.getTo();

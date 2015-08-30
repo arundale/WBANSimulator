@@ -4,7 +4,7 @@ import java.io.Serializable;
 
 import wban.simulate.path.Point;
 
-public class SlaveConfig extends Point implements Serializable {
+public class SensorNodeConfig extends Point implements Serializable {
 
     private static final long serialVersionUID = 1796860855765837767L;
     public static final short ST_DOWN = 0;

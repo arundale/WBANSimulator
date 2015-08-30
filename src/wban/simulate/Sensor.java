@@ -1,5 +1,5 @@
 package wban.simulate;
 
-public class Sensor {
-
+public interface Sensor {
+    public String acquireData();
 }

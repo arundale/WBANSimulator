@@ -11,7 +11,7 @@ public class Point implements Serializable {
     protected int midX;
     protected int midY;
 
-    Point previous = null;
+    private Point previous = null;
     double distanceFromPrevious;
 
     protected Point() {

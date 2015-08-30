@@ -3,7 +3,7 @@ package wban.simulate.path;
 import java.util.Hashtable;
 import java.util.List;
 
-import wban.simulate.config.SlaveConfig;
+import wban.simulate.config.SensorNodeConfig;
 
 public class PathSet {
 
@@ -31,7 +31,7 @@ public class PathSet {
         return pathMap.get(pt);
     }
 
-    public void setPath(SlaveConfig sc, List<LineSegment> path) {
+    public void setPath(SensorNodeConfig sc, List<LineSegment> path) {
         pathMap.put(sc, path);
     }
 

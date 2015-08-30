@@ -4,16 +4,21 @@ import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.List;
 
-public class Config implements Serializable {
+import wban.simulate.BaseStation;
+import wban.simulate.SensorNode;
+import wban.simulate.Simulator;
+
+public class SerializableConfig implements Serializable {
 
     private static final long serialVersionUID = -8987840463031558730L;
 
     final double batteryVoltMax = 4.2f;
     final double batteryVoltThreshold = 2.5f;
 
+    int dataSendFrequencyMillis = 3000;
     double batteryChargeRateVoltPerSec;
     double batteryDischargeRateVoltPerSec;
-    List<SlaveConfig> slaveConfig = new LinkedList<SlaveConfig>();
+    List<SensorNodeConfig> sensorNodeConfig = new LinkedList<SensorNodeConfig>();
     List<BaseStationConfig> bsConfig = new LinkedList<BaseStationConfig>();
 
     public double getBatteryChargeRateVoltPerSec() {
@@ -35,28 +40,39 @@ public class Config implements Serializable {
 
     public int addBaseStation(BaseStationConfig bsc) {
         bsConfig.add(bsc);
-        return bsConfig.size()-1;
+        int bsCount = bsConfig.size();
+        Simulator.getInstance().setBaseStation(new BaseStation(bsc));
+        return bsCount-1;
     }
 
-    public int addSlaveConfig(SlaveConfig sc) {
-        slaveConfig.add(sc);
-        return slaveConfig.size()-1;
+    public int addSensorNodeConfig(SensorNodeConfig sc) {
+        sensorNodeConfig.add(sc);
+        Simulator.getInstance().addSensorNode(new SensorNode(sc));
+        return sensorNodeConfig.size()-1;
     }
 
     public BaseStationConfig getBSConfig(int idx) {
         return bsConfig.get(idx);
     }
  
-    public SlaveConfig getSlaveConfig(int idx) {
-        return slaveConfig.get(idx);
+    public SensorNodeConfig getSensorNodeConfig(int idx) {
+        return sensorNodeConfig.get(idx);
     }
 
-    public List<SlaveConfig> getAllSlaveConfig() {
-        return slaveConfig;
+    public List<SensorNodeConfig> getAllSlaveConfig() {
+        return sensorNodeConfig;
     }
 
     public List<BaseStationConfig> getAllBSConfig() {
         return bsConfig;
+    }
+
+    public int getDataSendFrequencyMillis() {
+        return dataSendFrequencyMillis;
+    }
+
+    public void setDataSendFrequencySeconds(int dataSendFrequencySeconds) {
+        this.dataSendFrequencyMillis = dataSendFrequencySeconds;
     }
 
 }

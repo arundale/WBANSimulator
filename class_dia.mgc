@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ClassDiagram>
+    <Class name="wban.simulate.Battery" x="86" y="614">
+        <AttributesDisplayFilter public-accepted="true"
+            private-accepted="true" protected-accepted="true"
+            default-accepted="true" static-accepted="false"/>
+        <MethodDisplayFilter public-accepted="true"
+            private-accepted="false" protected-accepted="false"
+            default-accepted="false" static-accepted="false"
+            accessors-accepted="false" constructors-accepted="false"/>
+    </Class>
+    <Class name="wban.simulate.BaseStation" x="245" y="286">
+        <AttributesDisplayFilter public-accepted="true"
+            private-accepted="true" protected-accepted="true"
+            default-accepted="true" static-accepted="false"/>
+        <MethodDisplayFilter public-accepted="true"
+            private-accepted="false" protected-accepted="false"
+            default-accepted="false" static-accepted="false"
+            accessors-accepted="false" constructors-accepted="false"/>
+        <Association
+            destinationClassName="wban.simulate.config.BaseStationConfig"
+            endpointName="baseStationConfig" kind="Simple"/>
+    </Class>
+    <Class name="wban.simulate.path.PathFinder" x="451" y="351">
+        <AttributesDisplayFilter public-accepted="true"
+            private-accepted="true" protected-accepted="true"
+            default-accepted="true" static-accepted="false"/>
+        <MethodDisplayFilter public-accepted="true"
+            private-accepted="false" protected-accepted="false"
+            default-accepted="false" static-accepted="false"
+            accessors-accepted="false" constructors-accepted="false"/>
+        <Association destinationClassName="wban.simulate.path.Dijkstra"
+            endpointName="dijkstra" kind="Simple"/>
+        <Communication destinationClassName="wban.simulate.path.Point"/>
+        <Communication destinationClassName="wban.simulate.path.PathSet"/>
+        <Communication destinationClassName="wban.simulate.util.Util"/>
+        <Communication destinationClassName="wban.simulate.config.SerializableConfig"/>
+        <Communication destinationClassName="wban.simulate.config.SensorNodeConfig"/>
+        <Communication destinationClassName="wban.simulate.path.Dijkstra"/>
+    </Class>
+    <Class name="wban.simulate.config.SensorNodeConfig" x="11" y="531">
+        <AttributesDisplayFilter public-accepted="true"
+            private-accepted="true" protected-accepted="true"
+            default-accepted="true" static-accepted="false"/>
+        <MethodDisplayFilter public-accepted="true"
+            private-accepted="false" protected-accepted="false"
+            default-accepted="false" static-accepted="false"
+            accessors-accepted="false" constructors-accepted="false"/>
+        <Extension destinationClassName="wban.simulate.path.Point"/>
+    </Class>
+    <Class name="wban.simulate.path.Dijkstra" x="500" y="451">
+        <AttributesDisplayFilter public-accepted="true"
+            private-accepted="true" protected-accepted="true"
+            default-accepted="true" static-accepted="false"/>
+        <MethodDisplayFilter public-accepted="true"
+            private-accepted="false" protected-accepted="false"
+            default-accepted="false" static-accepted="true"
+            accessors-accepted="false" constructors-accepted="false"/>
+        <Communication destinationClassName="wban.simulate.path.LineSegment"/>
+        <Communication destinationClassName="wban.simulate.path.Point"/>
+        <Communication destinationClassName="wban.simulate.path.PathSet"/>
+    </Class>
+    <Class name="wban.simulate.view.SwingViewer" x="665" y="16">
+        <AttributesDisplayFilter public-accepted="false"
+            private-accepted="false" protected-accepted="false"
+            default-accepted="false" static-accepted="false"/>
+        <MethodDisplayFilter public-accepted="false"
+            private-accepted="false" protected-accepted="false"
+            default-accepted="false" static-accepted="false"
+            accessors-accepted="false" constructors-accepted="false"/>
+        <Association destinationClassName="wban.simulate.Simulator"
+            endpointName="simulator" kind="Composition"/>
+        <Communication destinationClassName="wban.simulate.path.Point"/>
+        <Communication destinationClassName="wban.simulate.path.PathSet"/>
+        <Communication destinationClassName="wban.simulate.util.Util"/>
+        <Communication destinationClassName="wban.simulate.config.SerializableConfig"/>
+        <Communication destinationClassName="wban.simulate.config.BaseStationConfig"/>
+        <Communication destinationClassName="wban.simulate.config.SensorNodeConfig"/>
+        <Communication destinationClassName="wban.simulate.Simulator"/>
+    </Class>
+    <Class name="wban.simulate.Sensor" x="367" y="603">
+        <AttributesDisplayFilter public-accepted="true"
+            private-accepted="true" protected-accepted="true"
+            default-accepted="true" static-accepted="false"/>
+        <MethodDisplayFilter public-accepted="true"
+            private-accepted="false" protected-accepted="false"
+            default-accepted="false" static-accepted="false"
+            accessors-accepted="false" constructors-accepted="false"/>
+    </Class>
+    <Class name="wban.simulate.path.LineSegment" x="197" y="155">
+        <AttributesDisplayFilter public-accepted="true"
+            private-accepted="true" protected-accepted="true"
+            default-accepted="true" static-accepted="false"/>
+        <MethodDisplayFilter public-accepted="true"
+            private-accepted="false" protected-accepted="false"
+            default-accepted="false" static-accepted="false"
+            accessors-accepted="false" constructors-accepted="false"/>
+        <Association destinationClassName="wban.simulate.path.Point"
+            endpointName="pt1" kind="Simple"/>
+        <Communication destinationClassName="wban.simulate.path.Point"/>
+        <Communication destinationClassName="wban.simulate.util.Util"/>
+    </Class>
+    <Class name="wban.simulate.path.Point" x="2" y="111">
+        <AttributesDisplayFilter public-accepted="true"
+            private-accepted="true" protected-accepted="true"
+            default-accepted="false" static-accepted="false"/>
+        <MethodDisplayFilter public-accepted="true"
+            private-accepted="false" protected-accepted="false"
+            default-accepted="false" static-accepted="false"
+            accessors-accepted="false" constructors-accepted="false"/>
+        <Association destinationClassName="wban.simulate.path.Point"
+            endpointName="previous" kind="Simple"/>
+    </Class>
+    <Class name="wban.simulate.ECG" x="534" y="693">
+        <AttributesDisplayFilter public-accepted="true"
+            private-accepted="true" protected-accepted="true"
+            default-accepted="true" static-accepted="false"/>
+        <MethodDisplayFilter public-accepted="true"
+            private-accepted="false" protected-accepted="false"
+            default-accepted="false" static-accepted="false"
+            accessors-accepted="false" constructors-accepted="false"/>
+        <Extension destinationClassName="wban.simulate.Sensor"/>
+    </Class>
+    <Class name="wban.simulate.path.PathSet" x="188" y="32">
+        <AttributesDisplayFilter public-accepted="true"
+            private-accepted="true" protected-accepted="true"
+            default-accepted="true" static-accepted="false"/>
+        <MethodDisplayFilter public-accepted="true"
+            private-accepted="false" protected-accepted="false"
+            default-accepted="false" static-accepted="false"
+            accessors-accepted="false" constructors-accepted="false"/>
+        <Association destinationClassName="wban.simulate.path.Point"
+            endpointName="from" kind="Simple"/>
+    </Class>
+    <Class name="wban.simulate.util.Util" x="610" y="557">
+        <AttributesDisplayFilter public-accepted="true"
+            private-accepted="true" protected-accepted="true"
+            default-accepted="true" static-accepted="false"/>
+        <MethodDisplayFilter public-accepted="true"
+            private-accepted="false" protected-accepted="true"
+            default-accepted="false" static-accepted="true"
+            accessors-accepted="false" constructors-accepted="false"/>
+        <Communication destinationClassName="wban.simulate.path.Point"/>
+    </Class>
+    <Class name="wban.simulate.config.SerializableConfig" x="88" y="388">
+        <AttributesDisplayFilter public-accepted="true"
+            private-accepted="true" protected-accepted="true"
+            default-accepted="true" static-accepted="false"/>
+        <MethodDisplayFilter public-accepted="true"
+            private-accepted="false" protected-accepted="false"
+            default-accepted="false" static-accepted="false"
+            accessors-accepted="false" constructors-accepted="false"/>
+        <Association
+            destinationClassName="wban.simulate.config.SensorNodeConfig"
+            endpointName="sensorNodeConfig" kind="Simple"/>
+        <Association
+            destinationClassName="wban.simulate.config.BaseStationConfig"
+            endpointName="bsConfig" kind="Simple"/>
+        <Communication destinationClassName="wban.simulate.Simulator"/>
+    </Class>
+    <Class name="wban.simulate.SensorNode" x="282" y="527">
+        <AttributesDisplayFilter public-accepted="true"
+            private-accepted="true" protected-accepted="true"
+            default-accepted="true" static-accepted="false"/>
+        <MethodDisplayFilter public-accepted="true"
+            private-accepted="false" protected-accepted="false"
+            default-accepted="false" static-accepted="false"
+            accessors-accepted="false" constructors-accepted="false"/>
+        <Association destinationClassName="wban.simulate.Sensor"
+            endpointName="sensors" kind="Simple"/>
+        <Association
+            destinationClassName="wban.simulate.config.SensorNodeConfig"
+            endpointName="sensorNodeConfig" kind="Simple"/>
+        <Association destinationClassName="wban.simulate.Battery"
+            endpointName="battery" kind="Simple"/>
+    </Class>
+    <Class name="wban.simulate.config.BaseStationConfig" x="87" y="332">
+        <AttributesDisplayFilter public-accepted="true"
+            private-accepted="true" protected-accepted="true"
+            default-accepted="true" static-accepted="false"/>
+        <MethodDisplayFilter public-accepted="true"
+            private-accepted="false" protected-accepted="false"
+            default-accepted="false" static-accepted="false"
+            accessors-accepted="false" constructors-accepted="false"/>
+        <Extension destinationClassName="wban.simulate.path.Point"/>
+    </Class>
+    <Class name="wban.simulate.BPMonitor" x="367" y="693">
+        <AttributesDisplayFilter public-accepted="true"
+            private-accepted="true" protected-accepted="true"
+            default-accepted="true" static-accepted="false"/>
+        <MethodDisplayFilter public-accepted="true"
+            private-accepted="false" protected-accepted="false"
+            default-accepted="false" static-accepted="false"
+            accessors-accepted="false" constructors-accepted="false"/>
+        <Extension destinationClassName="wban.simulate.Sensor"/>
+    </Class>
+    <Class name="wban.simulate.Temperature" x="204" y="692">
+        <AttributesDisplayFilter public-accepted="true"
+            private-accepted="true" protected-accepted="true"
+            default-accepted="true" static-accepted="false"/>
+        <MethodDisplayFilter public-accepted="true"
+            private-accepted="false" protected-accepted="false"
+            default-accepted="false" static-accepted="false"
+            accessors-accepted="false" constructors-accepted="false"/>
+        <Extension destinationClassName="wban.simulate.Sensor"/>
+    </Class>
+    <Class name="wban.simulate.Simulator" x="326" y="124">
+        <AttributesDisplayFilter public-accepted="true"
+            private-accepted="true" protected-accepted="true"
+            default-accepted="true" static-accepted="false"/>
+        <MethodDisplayFilter public-accepted="true"
+            private-accepted="false" protected-accepted="false"
+            default-accepted="false" static-accepted="false"
+            accessors-accepted="false" constructors-accepted="false"/>
+        <Association
+            destinationClassName="wban.simulate.path.PathFinder"
+            endpointName="pathFinder" kind="Simple"/>
+        <Association destinationClassName="wban.simulate.SensorNode"
+            endpointName="sensorNodes" kind="Simple"/>
+        <Association destinationClassName="wban.simulate.BaseStation"
+            endpointName="baseStation" kind="Simple"/>
+        <Association destinationClassName="wban.simulate.path.PathSet"
+            endpointName="currentPathSet" kind="Simple"/>
+        <Association
+            destinationClassName="wban.simulate.config.SerializableConfig"
+            endpointName="config" kind="Simple"/>
+        <Communication destinationClassName="wban.simulate.config.SerializableConfig"/>
+        <Communication destinationClassName="wban.simulate.path.PathFinder"/>
+        <Communication destinationClassName="wban.simulate.path.Dijkstra"/>
+    </Class>
+    <Class name="wban.simulate.log.Logger" x="768" y="676">
+        <AttributesDisplayFilter public-accepted="true"
+            private-accepted="true" protected-accepted="true"
+            default-accepted="true" static-accepted="false"/>
+        <MethodDisplayFilter public-accepted="true"
+            private-accepted="false" protected-accepted="false"
+            default-accepted="false" static-accepted="true"
+            accessors-accepted="false" constructors-accepted="false"/>
+    </Class>
+</ClassDiagram>
