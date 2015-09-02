@@ -128,7 +128,7 @@ public class SwingViewer extends JPanel implements Runnable, ActionListener, Mou
         this.add(popMenu);
         this.addMouseListener(new MouseAdapter() {
             public void mousePressed(MouseEvent evt) {
-                if (evt.isPopupTrigger()) {
+                if (true) { //evt.isPopupTrigger()) {
                     popMenu.show(evt.getComponent(), evt.getX(), evt.getY());
                     currentX = evt.getX();
                     currentY = evt.getY();
@@ -374,7 +374,7 @@ public class SwingViewer extends JPanel implements Runnable, ActionListener, Mou
             currentIcon = (JLabel) e.getComponent();
             currentIcon.setBorder(lineBorder);
             Icon img = currentIcon.getIcon();
-            if (e.isPopupTrigger() && img != null && !img.equals(baseStationImg)) {
+            if (/*e.isPopupTrigger() && */img != null && !img.equals(baseStationImg)) {
                 popMenu.setVisible(true);
                 popMenu.show(e.getComponent(), e.getX(), e.getY());
             }

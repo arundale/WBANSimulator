@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ClassDiagram>
-    <Class name="wban.simulate.Battery" x="86" y="614">
+    <Class name="wban.simulate.Battery" x="164" y="605">
         <AttributesDisplayFilter public-accepted="true"
             private-accepted="true" protected-accepted="true"
             default-accepted="true" static-accepted="false"/>
@@ -38,7 +38,7 @@
         <Communication destinationClassName="wban.simulate.config.SensorNodeConfig"/>
         <Communication destinationClassName="wban.simulate.path.Dijkstra"/>
     </Class>
-    <Class name="wban.simulate.config.SensorNodeConfig" x="11" y="531">
+    <Class name="wban.simulate.config.SensorNodeConfig" x="13" y="527">
         <AttributesDisplayFilter public-accepted="true"
             private-accepted="true" protected-accepted="true"
             default-accepted="true" static-accepted="false"/>
@@ -100,7 +100,7 @@
         <Communication destinationClassName="wban.simulate.path.Point"/>
         <Communication destinationClassName="wban.simulate.util.Util"/>
     </Class>
-    <Class name="wban.simulate.path.Point" x="2" y="111">
+    <Class name="wban.simulate.path.Point" x="3" y="101">
         <AttributesDisplayFilter public-accepted="true"
             private-accepted="true" protected-accepted="true"
             default-accepted="false" static-accepted="false"/>

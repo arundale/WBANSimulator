@@ -10,9 +10,8 @@ import java.io.ObjectOutputStream;
 import java.util.LinkedList;
 import java.util.List;
 
-import wban.simulate.config.SerializableConfig;
 import wban.simulate.config.SensorNodeConfig;
-import wban.simulate.path.Dijkstra;
+import wban.simulate.config.SerializableConfig;
 import wban.simulate.path.PathFinder;
 import wban.simulate.path.PathSet;
 
