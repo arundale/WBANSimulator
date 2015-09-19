@@ -57,7 +57,8 @@ public class PathFinder {
 
     }
 
-    public void findShortestPath(SensorNodeConfig sc, PathSet pathSet) {
-        dijkstra.findShortestPath(sc, pathSet);
+    public double findShortestPath(SensorNodeConfig sc, PathSet pathSet) {
+        return dijkstra.findShortestPath(sc, pathSet);
     }
-    }
+
+}

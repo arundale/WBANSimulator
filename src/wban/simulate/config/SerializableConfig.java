@@ -12,14 +12,15 @@ public class SerializableConfig implements Serializable {
 
     private static final long serialVersionUID = -8987840463031558730L;
 
-    final double batteryVoltMax = 4.2f;
-    final double batteryVoltThreshold = 2.5f;
-
-    int dataSendFrequencyMillis = 3000;
+    int dataSendFrequencyMillis = 1000;
     double batteryChargeRateVoltPerSec;
     double batteryDischargeRateVoltPerSec;
     List<SensorNodeConfig> sensorNodeConfig = new LinkedList<SensorNodeConfig>();
     List<BaseStationConfig> bsConfig = new LinkedList<BaseStationConfig>();
+
+    public SerializableConfig() {
+        batteryDischargeRateVoltPerSec = .0002;
+    }
 
     public double getBatteryChargeRateVoltPerSec() {
         return batteryChargeRateVoltPerSec;
@@ -47,7 +48,7 @@ public class SerializableConfig implements Serializable {
 
     public int addSensorNodeConfig(SensorNodeConfig sc) {
         sensorNodeConfig.add(sc);
-        Simulator.getInstance().addSensorNode(new SensorNode(sc));
+        Simulator.getInstance().addSensorNode(new SensorNode(sc, sensorNodeConfig.size()));
         return sensorNodeConfig.size()-1;
     }
 

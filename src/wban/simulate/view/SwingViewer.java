@@ -21,6 +21,7 @@ import java.util.TimerTask;
 import javax.swing.BorderFactory;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
+import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
@@ -29,9 +30,12 @@ import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
+import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.border.Border;
 
+import wban.simulate.Battery;
+import wban.simulate.SensorNode;
 import wban.simulate.Simulator;
 import wban.simulate.config.BaseStationConfig;
 import wban.simulate.config.SensorNodeConfig;
@@ -72,6 +76,8 @@ public class SwingViewer extends JPanel implements Runnable, ActionListener, Mou
     Simulator simulator = Simulator.getInstance();
     Timer timer = new Timer();
 
+    JFrame f = null;
+
     private boolean isTimerSet = false;
 
     public SwingViewer() {
@@ -93,7 +99,7 @@ public class SwingViewer extends JPanel implements Runnable, ActionListener, Mou
     }
 
     public void run() {
-        final JFrame f = new JFrame("WBAN Simulation Viewer");
+        f = new JFrame("WBAN Simulation Viewer");
         f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         f.setBounds(0, 0, (int) screenSize.getWidth(), (int) screenSize.getHeight());
@@ -264,23 +270,50 @@ public class SwingViewer extends JPanel implements Runnable, ActionListener, Mou
             slaveConfig.setSlavePosY(currentY);
             slaveConfig.setSlaveMidX(currentX + currentIcon.getWidth() / 2);
             slaveConfig.setSlaveMidY(currentY + currentIcon.getHeight() / 2);
+            slaveConfig.setBatteryVolt(4.2);
             int slaveIdx = simulator.getConfig().addSensorNodeConfig(slaveConfig);
             icon.setToolTipText(String.valueOf(slaveIdx));
+        } else if (strCommand.equals(strMIChangeDetails)) {
+            int idx = Integer.valueOf(currentIcon.getToolTipText());
+            SensorNodeConfig sensorConfig = simulator.getConfig().getSensorNodeConfig(idx);
+            if (sensorConfig.getState() != SensorNodeConfig.ST_CHARGING) {
+               JDialog jd = new JDialog(f, "Enter battery voltage", true);
+               JTextField tf = new JTextField(String.valueOf(sensorConfig.getBatteryVolt()));
+               jd.add(tf);
+               jd.setBounds(100, 100, 300, 200);
+               jd.setVisible(true);
+               double bVolt = Double.parseDouble(tf.getText());
+               sensorConfig.setBatteryVolt(bVolt);
+               if (bVolt > Battery.batteryDownThreshold) {
+                  simulator.getConfig().getSensorNodeConfig(idx).setState(SensorNodeConfig.ST_DISCHARGING);
+                  currentIcon.setIcon(sensorClusterNormalImg);
+               } else {
+                  simulator.getConfig().getSensorNodeConfig(idx).setState(SensorNodeConfig.ST_DOWN);
+                  currentIcon.setIcon(sensorClusterBatteryDownImg);
+               }
+               this.revalidate();
+            }
         } else if (strCommand.equals(strMIChargeBattery)) {
             currentIcon.setIcon(sensorClusterBatteryChargingImg);
             this.revalidate();
             int idx = Integer.valueOf(currentIcon.getToolTipText());
-            simulator.getConfig().getSensorNodeConfig(idx).setState(SensorNodeConfig.ST_CHARGING);
+            SensorNodeConfig sensorConfig = simulator.getConfig().getSensorNodeConfig(idx);
+            sensorConfig.setState(SensorNodeConfig.ST_CHARGING);
+            sensorConfig.setBatteryVolt(4.2);
         } else if (strCommand.equals(strMIStopCharging)) {
             currentIcon.setIcon(sensorClusterNormalImg);
             this.revalidate();
             int idx = Integer.valueOf(currentIcon.getToolTipText());
-            simulator.getConfig().getSensorNodeConfig(idx).setState(SensorNodeConfig.ST_DISCHARGING);
+            SensorNodeConfig sensorConfig = simulator.getConfig().getSensorNodeConfig(idx);
+            sensorConfig.setState(SensorNodeConfig.ST_DISCHARGING);
+            sensorConfig.setBatteryVolt(Battery.batteryDownThreshold+1);
         } else if (strCommand.equals(strMIBatteryDown)) {
             currentIcon.setIcon(sensorClusterBatteryDownImg);
             this.revalidate();
             int idx = Integer.valueOf(currentIcon.getToolTipText());
-            simulator.getConfig().getSensorNodeConfig(idx).setState(SensorNodeConfig.ST_DOWN);
+            SensorNodeConfig sensorConfig = simulator.getConfig().getSensorNodeConfig(idx);
+            sensorConfig.setState(SensorNodeConfig.ST_DOWN);
+            sensorConfig.setBatteryVolt(Battery.batteryDownThreshold);
         } else if (strCommand.equals(strMISendData)) {
             int id = Integer.valueOf(currentIcon.getToolTipText());
             SensorNodeConfig sc = simulator.getConfig().getSensorNodeConfig(id);
@@ -296,7 +329,16 @@ public class SwingViewer extends JPanel implements Runnable, ActionListener, Mou
             timer.scheduleAtFixedRate(new TimerTask() {
                 @Override
                 public void run() {
-                    simulator.simulateNext();
+                    SensorNode sn = simulator.simulateNext();
+                    SensorNodeConfig sensorConfig = sn.getSensorNodeConfig();
+                    double bVolt = sensorConfig.getBatteryVolt();
+                    if (bVolt > Battery.batteryDownThreshold) {
+                        sensorConfig.setState(SensorNodeConfig.ST_DISCHARGING);
+                        currentIcon.setIcon(sensorClusterNormalImg);
+                     } else {
+                        sensorConfig.setState(SensorNodeConfig.ST_DOWN);
+                        currentIcon.setIcon(sensorClusterBatteryDownImg);
+                     }
                     repaint();
                 }
             }, 0, simulator.getConfig().getDataSendFrequencyMillis());

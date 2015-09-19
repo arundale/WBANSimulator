@@ -12,8 +12,11 @@ import java.util.List;
 
 import wban.simulate.config.SensorNodeConfig;
 import wban.simulate.config.SerializableConfig;
+import wban.simulate.log.Logger;
+import wban.simulate.path.Dijkstra;
 import wban.simulate.path.PathFinder;
 import wban.simulate.path.PathSet;
+import wban.simulate.util.Util;
 
 public class Simulator {
 
@@ -38,7 +41,9 @@ public class Simulator {
             config = (SerializableConfig) ois.readObject();
             List<SensorNodeConfig> lstSC = config.getAllSlaveConfig();
             for (SensorNodeConfig sc : lstSC) {
-                sensorNodes.add(new SensorNode(sc));
+                if (sc.getBatteryVolt() < .2)
+                    sc.setBatteryVolt(4.2);
+                sensorNodes.add(new SensorNode(sc, sensorNodes.size()));
             }
             ois.close();
             fis.close();
@@ -73,7 +78,11 @@ public class Simulator {
 
     public PathSet simulateDataTransmission(SensorNodeConfig sc) {
         PathSet pathSet = pathFinder.buildPath(sc, config, null);
-        pathFinder.findShortestPath(sc, pathSet);
+        double currentByShortestPath = pathFinder.findShortestPath(sc, pathSet);
+        double distanceToBS = Util.distanceBetween(sc, config.getBSConfig(0));
+        double currentToBS = (distanceToBS * distanceToBS) * Dijkstra.milliAmpPerTransmit / 1000;
+        Logger.log("Consumption (mA): Direct to Base Station:" + Math.round(currentToBS)
+                + ", Shortest:" + Math.round(currentByShortestPath));
         currentPathSet = pathSet;
         return pathSet;
     }
@@ -94,21 +103,32 @@ public class Simulator {
         this.sensorNodes.add(sensorNode);
     }
 
-    public PathSet simulateNext() {
-        PathSet ret = null;
+    public SensorNode simulateNext() {
+        PathSet ps = null;
         if (currentSensor < sensorNodes.size()) {
-            ret = simulateDataTransmission(sensorNodes.get(currentSensor).getSensorNodeConfig());
+            SensorNode sensorNode = sensorNodes.get(currentSensor);
+            SensorNodeConfig sensorConfig = sensorNode.getSensorNodeConfig();
+            simulateBatteryDischarge(sensorConfig);
+            ps = simulateDataTransmission(sensorConfig);
+            sensorNode.sendData();
             currentSensor++;
             if (currentSensor == sensorNodes.size())
                 currentSensor = 0;
         }
-        return ret;
+        return sensorNodes.get(currentSensor);
     }
 
     public PathSet getCurrentPathSet() {
         return currentPathSet;
     }
 
-    public void simulateBatteryDischarge() {
+    public void simulateBatteryDischarge(SensorNodeConfig sensorConfig) {
+        double batteryVolt = sensorConfig.getBatteryVolt();
+        batteryVolt -= (config.getBatteryDischargeRateVoltPerSec() * config.getDataSendFrequencyMillis() / 1000);
+        sensorConfig.setBatteryVolt(batteryVolt);
+        if (batteryVolt < Battery.batteryDownThreshold)
+            sensorConfig.setState(SensorNodeConfig.ST_DOWN);
+        else
+            sensorConfig.setState(SensorNodeConfig.ST_DISCHARGING);
     }
 }
